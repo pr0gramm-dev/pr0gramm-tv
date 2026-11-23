@@ -24,7 +24,9 @@ mise exec -- ./gradlew installDebug
 ## Pull requests
 
 - Make a branch from `main`. Name the branch after the change, for example `fix-manifest-parser`.
-- Write the commit message in English, in the form `type: short summary`, for example
+- Write the commit message in English, in the form of [Conventional Commits](https://www.conventionalcommits.org):
+  `type: short summary`. The type sets the next version (see [Make a release](docs/release.md#make-a-release)).
+  For example
   `fix: keep last valid catalog`.
 - Fill in [the pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 - Put one change in each pull request.
