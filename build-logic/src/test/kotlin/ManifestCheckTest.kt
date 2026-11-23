@@ -16,12 +16,12 @@ class ManifestCheckTest {
         sha256: String = sha,
         size: Long = apkBytes.size.toLong(),
         banner: String = "img/a.png",
-        image: String = "img/kodi.png",
+        appBanner: String = "img/kodi.png",
         apk: String = "apks/kodi.apk",
     ) =
         """{"version": 1, "date": "2026-11-18",
             "sites": [{"id": "nova", "name": "Nova", "url": "https://nova.example/", "banner": "$banner"}],
-            "apps": [{"package": "org.kodi", "name": "Kodi", "image": "$image",
+            "apps": [{"package": "org.kodi", "name": "Kodi", "banner": "$appBanner",
             "versionCode": 1, "apk": "$apk", "sha256": "$sha256", "size": $size}]}"""
 
     private fun file(path: String, bytes: ByteArray = byteArrayOf(1)) =
@@ -75,7 +75,7 @@ class ManifestCheckTest {
     @Test fun `absolute urls are checked by the parser only, without network`() {
         file("img/a.png")
         val apk = "https://github.com/o/r/releases/download/v1/a.apk"
-        val text = manifest(image = "https://cdn.example/kodi.png", apk = apk)
+        val text = manifest(appBanner = "https://cdn.example/kodi.png", apk = apk)
         assertEquals(emptyList<String>(), check(text, apks = true))
         assertEquals(emptyList<String>(), check(text, apks = false))
     }

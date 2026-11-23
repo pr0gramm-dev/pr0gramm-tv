@@ -58,7 +58,7 @@ object TileMenuRows {
             kicker = text(R.string.tile_kicker_app),
             title = tile.entry.name,
             subtitle = listOfNotNull(appLine(tile.state)),
-            picture = tile.entry.image?.let(catalog::image),
+            picture = tile.entry.banner?.let(catalog::image),
             badge = text(R.string.tile_badge_update).takeIf { tile.state == AppState.Update },
         )
     }

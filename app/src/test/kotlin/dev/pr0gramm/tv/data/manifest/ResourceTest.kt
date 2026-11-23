@@ -61,22 +61,26 @@ class ResourceTest {
         assertEquals(URI(raw), Resource.of(raw)!!.resolve(base))
     }
 
-    /** A manifest with one site and one app; [banner], [image] and [apk] are raw JSON strings. */
-    private fun manifest(banner: String = "img/nova.png", image: String = "img/kodi.png", apk: String = "kodi.apk") =
+    /** A manifest with one site and one app; [banner], [appBanner] and [apk] are raw JSON strings. */
+    private fun manifest(
+        banner: String = "img/nova.png",
+        appBanner: String = "img/kodi.png",
+        apk: String = "kodi.apk",
+    ) =
         """{"version": 1, "date": "2026-11-18",
             "sites": [{"id": "nova", "name": "Nova", "url": "https://nova.example/", "banner": "$banner"}],
-            "apps": [{"package": "org.kodi", "name": "Kodi", "image": "$image", "versionCode": 1,
+            "apps": [{"package": "org.kodi", "name": "Kodi", "banner": "$appBanner", "versionCode": 1,
             "apk": "$apk", "sha256": "${"ab".repeat(32)}", "size": 10}]}"""
 
     private fun problems(text: String) =
         (Manifest.parse(text) as ManifestResult.Invalid).problems.map(ManifestProblem::english)
 
     @Test
-    fun theManifestTakesAbsoluteUrlsForBannerImageAndApk() {
+    fun theManifestTakesAbsoluteUrlsForBannersAndApk() {
         val text = manifest("HTTPS://cdn.x/nova.png", "https://cdn.x/kodi.png?sig=1", "https://github.com/o/r/a.apk")
         val manifest = (Manifest.parse(text) as ManifestResult.Valid).manifest
         assertEquals(Resource.of("HTTPS://cdn.x/nova.png"), manifest.sites.single().banner)
-        assertEquals(Resource.of("https://cdn.x/kodi.png?sig=1"), manifest.apps.single().image)
+        assertEquals(Resource.of("https://cdn.x/kodi.png?sig=1"), manifest.apps.single().banner)
         assertEquals(Resource.of("https://github.com/o/r/a.apk"), manifest.apps.single().apk.file)
     }
 
@@ -88,7 +92,7 @@ class ResourceTest {
             listOf("ftp://x/a.apk", "file:///a.apk", "https:///a.apk", "https://user@x/a.apk", "https://x/a.png#v2")
         for (raw in rejected) {
             assertEquals(listOf("sites[0] (nova).banner: \"$raw\" $rule"), problems(manifest(banner = raw)))
-            assertEquals(listOf("apps[0] (org.kodi).image: \"$raw\" $rule"), problems(manifest(image = raw)))
+            assertEquals(listOf("apps[0] (org.kodi).banner: \"$raw\" $rule"), problems(manifest(appBanner = raw)))
             assertEquals(listOf("apps[0] (org.kodi).apk: \"$raw\" $rule"), problems(manifest(apk = raw)))
         }
     }

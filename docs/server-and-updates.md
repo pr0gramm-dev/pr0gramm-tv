@@ -84,7 +84,7 @@ Each static file server that obeys the rules below works. Examples are nginx, Ca
 web front end.
 
 - The server sends the manifest at the URL that the app makes from the server address.
-- The server sends each file that the manifest names with a relative path (banners, app images, APKs). The path of
+- The server sends each file that the manifest names with a relative path (banners, APKs). The path of
   the file is relative to the manifest.
 - A file can also have an absolute http or https URL on a different server, for example an APK in a GitHub Release.
   The app does not check the origin of a file. You choose which server address you trust.
@@ -102,12 +102,15 @@ This example layout serves the catalog of [`example/`](../example/README.md) at 
 /srv/tv/                  root of https://tv.example.org/
 ├── manifest.json         https://tv.example.org/manifest.json
 ├── img/
-│   └── bbb.png           "banner": "img/bbb.png"
+│   ├── bbb.jpg           "banner": "img/bbb.jpg"   (one banner for each site)
+│   └── jellyfin.jpg      "banner": "img/jellyfin.jpg"
 └── apks/
     └── kodi.apk          "apk": "apks/kodi.apk"
 ```
 
-With the server address `example.org/tv`, the app loads `img/bbb.png` from `https://example.org/tv/img/bbb.png`.
+The APK of Jellyfin is not on this server: the manifest names it with an absolute URL on GitHub.
+
+With the server address `example.org/tv`, the app loads `img/bbb.jpg` from `https://example.org/tv/img/bbb.jpg`.
 
 ### Example: nginx and Caddy
 

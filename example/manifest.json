@@ -1,18 +1,99 @@
 {
   "version": 1,
-  "date": "2026-11-20",
+  "date": "2026-11-23",
   "sites": [
     {
       "id": "bbb",
       "name": "Big Buck Bunny",
       "url": "https://peach.blender.org/",
-      "description": "Der offene Animationsfilm der Blender Foundation.",
-      "category": "Filme",
+      "description": "A giant rabbit takes revenge on three bullies.",
+      "category": "Open Movies",
       "tags": ["CC BY 3.0"],
-      "banner": "img/bbb.png"
+      "banner": "img/bbb.jpg"
+    },
+    {
+      "id": "sintel",
+      "name": "Sintel",
+      "url": "https://durian.blender.org/",
+      "description": "A girl searches for her baby dragon.",
+      "category": "Open Movies",
+      "tags": ["CC BY 3.0"],
+      "banner": "img/sintel.jpg"
+    },
+    {
+      "id": "tos",
+      "name": "Tears of Steel",
+      "url": "https://mango.blender.org/",
+      "description": "Science fiction in Amsterdam.",
+      "category": "Open Movies",
+      "tags": ["CC BY 3.0"],
+      "banner": "img/tos.jpg"
+    },
+    {
+      "id": "spring",
+      "name": "Spring",
+      "url": "https://studio.blender.org/films/spring/",
+      "description": "A shepherd girl and her dog face ancient spirits.",
+      "category": "Open Movies",
+      "tags": ["CC BY 4.0"],
+      "banner": "img/spring.jpg"
+    },
+    {
+      "id": "cosmos",
+      "name": "Cosmos Laundromat",
+      "url": "https://gooseberry.blender.org/",
+      "description": "A sheep gets an offer that changes his life.",
+      "category": "Open Movies",
+      "tags": ["CC BY 4.0"],
+      "banner": "img/cosmos.jpg"
+    },
+    {
+      "id": "ed",
+      "name": "Elephants Dream",
+      "url": "https://orange.blender.org/",
+      "description": "The first open movie of the Blender Foundation.",
+      "category": "Open Movies",
+      "tags": ["CC BY 2.5"],
+      "banner": "img/ed.jpg"
+    },
+    {
+      "id": "dillama",
+      "name": "Caminandes 2: Gran Dillama",
+      "url": "https://www.caminandes.com/",
+      "description": "A llama wants the grass on the other side of the fence.",
+      "category": "Shorts",
+      "tags": ["CC BY 3.0"],
+      "banner": "img/dillama.jpg"
+    },
+    {
+      "id": "llamigos",
+      "name": "Caminandes 3: Llamigos",
+      "url": "https://www.caminandes.com/",
+      "description": "A llama meets a penguin.",
+      "category": "Shorts",
+      "tags": ["CC BY 4.0"],
+      "banner": "img/llamigos.jpg"
     }
   ],
   "apps": [
+    {
+      "package": "org.jellyfin.androidtv",
+      "name": "Jellyfin",
+      "banner": "img/jellyfin.jpg",
+      "versionCode": 200099,
+      "apk": "https://github.com/jellyfin/jellyfin-androidtv/releases/download/v0.20.0/jellyfin-androidtv-v0.20.0-release.apk",
+      "sha256": "dfcc665195bed4ea087dca63df6f77497acc1185c4b15776b336d80eeaeb7fa6",
+      "size": 29945596
+    },
+    {
+      "package": "com.limelight",
+      "name": "Moonlight",
+      "banner": "img/moonlight.jpg",
+      "versionCode": 315,
+      "apk": "https://github.com/moonlight-stream/moonlight-android/releases/download/v12.2/app-nonRoot-release.apk",
+      "sha256": "a871f6190365386ef3ac5722a016d4da015ee1555631ec257f6e5dc3f4a45fe0",
+      "size": 11137885
+    },
     {
       "package": "org.xbmc.kodi",
       "name": "Kodi",

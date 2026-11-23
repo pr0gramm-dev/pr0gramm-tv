@@ -14,16 +14,32 @@ to any http or https URL. Over http, `sha256` and `size` find a broken download.
 someone in the network replaced. The rules for the server are in
 [docs/server-and-updates.md](../docs/server-and-updates.md).
 
-This folder has one site (Big Buck Bunny) and one app (Kodi). To use it:
+This folder has 8 sites and 3 apps:
+
+- The sites are the open movies of the Blender Foundation. Each site has a banner.
+- Jellyfin and Moonlight are apps with an image. Their APKs are release assets on GitHub (absolute URLs) with the
+  real `versionCode`, `sha256` and `size`.
+- Kodi is an app without an image: its tile shows the name. Its APK is a relative path on your own server.
+
+To use the example catalog:
 
 1. Copy the folder.
 2. Change the manifest and the files.
 3. Put the folder on your server.
 
+To look at the example catalog on a TV or in the emulator, serve this folder with any static file server. Then
+enter its address in the server dialog. For example:
+
+```sh
+cd example && python3 -m http.server 8088   # in the Android emulator, the server address is http://10.0.2.2:8088
+```
+
 ```text
 manifest.json
-img/bbb.png      banner of the site
-apks/kodi.apk    not in git: put your own APK here
+img/<site id>.jpg   banner of each site, 640 × 360 px
+img/jellyfin.jpg    image of the Jellyfin app
+img/moonlight.jpg   image of the Moonlight app
+apks/kodi.apk       not in git: put your own APK here
 ```
 
 ## Check a catalog
@@ -37,7 +53,8 @@ The task runs the parser of the app. When the manifest is valid, the task prints
 Otherwise it prints one line for each problem and exits with 1. A relative path is relative to the directory where
 you start mise. `tests/example-test.sh` checks this example in `mise run test`.
 
-The Kodi entry has a placeholder `sha256` and `size`. Thus `--apks` fails until you do these steps:
+The Kodi entry has a placeholder `sha256` and `size`. `--apks` checks only APKs with a relative path. Thus
+`--apks` fails until you do these steps:
 
 1. Put a real APK at `apks/kodi.apk`.
 2. Get its SHA-256 and its size:
@@ -94,7 +111,7 @@ The app ignores unknown fields. Each other error makes the whole manifest invali
 | `category` | no | | category, shown in the menu of the tile |
 | `tags` | no | `[]` | list of strings |
 | `color` | no | | background colour behind the banner, `#RRGGBB` |
-| `banner` | no | | image file, a relative path like `img/a.png` or an absolute URL |
+| `banner` | no | | the picture of the tile (see [Banners](#banners)) |
 | `cursor` | no | `true` | `true`: pointer mode, `false`: focus mode |
 | `desktopMode` | no | `false` | desktop layout |
 | `zoom` | no | `100` | page zoom in percent, 50 to 150 |
@@ -108,11 +125,22 @@ The app ignores unknown fields. Each other error makes the whole manifest invali
 |---|---|---|
 | `package` | yes | Android package name like `org.xbmc.kodi`, unique in `apps`. `dev.pr0gramm.tv` is not allowed: the app updates itself from GitHub Releases (self-update). |
 | `name` | yes | name on the tile |
-| `image` | no | image file, a relative path like `img/kodi.png` or an absolute URL |
+| `banner` | no | the picture of the tile (see [Banners](#banners)) |
 | `versionCode` | yes | `versionCode` of the APK, greater than 0 |
 | `apk` | yes | APK file, a relative path like `apks/kodi.apk` or an absolute URL like `https://github.com/o/r/releases/download/v1/a.apk` |
 | `sha256` | yes | SHA-256 of the APK, 64 hex digits in lowercase |
 | `size` | yes | size of the APK in bytes, greater than 0 |
+
+### Banners
+
+Every entry of the catalog that has a tile names its picture `banner`: a site, an app, and each later kind of
+entry, for example the entries of the planned ambient mode ([roadmap](../docs/roadmap.md)). Do not use a different
+field name for a picture.
+
+- A banner has the format 16:9, for example 640 × 360 px. The example banners have this size.
+- A banner is an image file: a relative path like `img/bbb.jpg`, or an absolute URL. It is at most 5 MiB.
+- Without a banner, the tile shows the name.
+- An app reads only `banner`. The app ignores an old field `image`.
 
 ### Relative paths and absolute URLs
 
@@ -136,6 +164,27 @@ network, also not with `--apks`.
 
 ## Credits
 
-`img/bbb.png` shows Big Buck Bunny, (c) copyright 2008, Blender Foundation, https://peach.blender.org/.
-The film and its images are under the Creative Commons Attribution 3.0 license (CC BY 3.0,
-https://creativecommons.org/licenses/by/3.0/).
+The banners show stills from the open movies of the [Blender Foundation](https://studio.blender.org/films/). The
+stills come from Wikimedia Commons. The script that made the banners cropped each still to 640 × 360 px and added
+the film title. The authors do not endorse these changes.
+
+| File | Film | Source | Author | License |
+|---|---|---|---|---|
+| `img/bbb.jpg` | Big Buck Bunny | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Big.Buck.Bunny.-.Frank.Rinky.Gimera.png) | Blender Foundation | CC BY 3.0 |
+| `img/sintel.jpg` | Sintel | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Durian_-_Sintel-wallpaper-sintel.jpg) | David REVOY | CC BY 3.0 |
+| `img/tos.jpg` | Tears of Steel | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Tears_of_Steel_frame_01_2a.jpg) | Blender Foundation, Project Mango | CC BY 3.0 |
+| `img/ed.jpg` | Elephants Dream | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Elephants_Dream_-_Emo_and_Proog.png) | Ton Roosendaal et al. | CC BY 2.5 |
+| `img/cosmos.jpg` | Cosmos Laundromat | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:CosmosLaundromatFranck.jpg) | Blender Foundation | CC BY 3.0 |
+| `img/dillama.jpg` | Caminandes 2: Gran Dillama | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Caminandes_gran_dillama.png) | Francesco Siddi, Pablo Vazquez | CC BY 3.0 |
+| `img/llamigos.jpg` | Caminandes 3: Llamigos | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Blender_Foundation_-_Caminandes_-_Episode_3_-_Llamigos_-_Koro_and_Oti_share_more_food_to_eat_at_night.png) | Blender Foundation | CC BY 4.0 |
+| `img/spring.jpg` | Spring | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Blender_Open_Movie_-_Spring_%282019%29.png) | Alexandru.rosu | CC0 |
+
+The banners of the apps are their Android TV banners, scaled to 640 × 360 px:
+
+| File | Source | License |
+|---|---|---|
+| `img/jellyfin.jpg` | [jellyfin/jellyfin-ux](https://github.com/jellyfin/jellyfin-ux/blob/master/branding/android/tv/app/mipmap-xxxhdpi/app_banner.png) | CC BY-SA 4.0 |
+| `img/moonlight.jpg` | [moonlight-stream/moonlight-android](https://github.com/moonlight-stream/moonlight-android/blob/master/fastlane/metadata/android/en-US/images/tvBanner.png) | GPL-3.0 |
+
+Every file in `img/` keeps the license in the tables above. The MIT license of this repo does not apply to these
+files. Jellyfin, Moonlight and Kodi are names of their projects. This project has no connection with these projects.

@@ -3,7 +3,7 @@ package dev.pr0gramm.tv.data.manifest
 import java.net.URI
 import java.net.URISyntaxException
 
-/** A file the manifest names (`banner`, `image`, `apk`): a [ServerPath] next to the manifest or an [AbsoluteUrl]. */
+/** A file the manifest names (`banner`, `apk`): a [ServerPath] next to the manifest or an [AbsoluteUrl]. */
 sealed interface Resource {
     /** Where to request the file: a [ServerPath] against [manifestUrl] (the saved address), an [AbsoluteUrl] as is. */
     fun resolve(manifestUrl: URI): URI

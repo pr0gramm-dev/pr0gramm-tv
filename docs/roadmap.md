@@ -42,13 +42,18 @@ yet. Do not read an open question as a plan.
 ## Ambient mode (planned, scope open)
 
 **Status: planned, scope open.** The owner calls this feature "Ambients". The meaning of this word is not
-confirmed. This section contains no decisions.
+confirmed. This section contains one decision, the field name of a picture. Everything else is open.
 
 ### The app today
 
 - The app has no ambient mode.
 - The manifest parser ignores unknown fields. The test `ManifestTest.ignoresUnknownFieldsAndTypes` uses an unknown
   top-level field `ambient` as its example. This test is not a design of ambient mode.
+
+### Decided
+
+- A picture of an ambient entry in the manifest has the field name `banner`, like the picture of a site and of an
+  app (Owner, 2026-11-23). See [the banner rule](../example/README.md#banners).
 
 ### Open questions
 
