@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+#MISE description="CI only: build and sign release vMAJOR.MINOR.PATCH (.github/workflows/release.yml): stage <tag>"
+#MISE hide=true
+set -uo pipefail
+# The build step of the tag release. Before Gradle it stops unless the tag may become a release:
+# mise-tasks/version check <tag> (AC10), and HEAD must be the tagged commit.
+# Then it builds the app with the version from the tag, the self-update repo from GITHUB_REPOSITORY and the blocklist
+# from BLOCKLIST_URL, and signs it as app/build/outputs/apk/release/pr0gramm-tv.apk.
+# It writes no manifest and no apks/ and checks no registry (AC13).
+# stdout carries only the step outputs for $GITHUB_OUTPUT: version=MAJOR.MINOR.PATCH and apk=<path of the signed APK>.
+# Every other line goes to stderr.
+# Environment (set by the workflow):
+#   RELEASE_SIGNING_KEY  base64 PKCS#8 release key, only for mise-tasks/sign
+#   BLOCKLIST_URL        http(s) address of the domain list
+#   GITHUB_REPOSITORY    owner/repo of the workflow (set by the runner); the app reads its self-updates there
+# External tools, replaceable for tests/stage-test.sh:
+#   GRADLEW    Gradle wrapper (default ./gradlew; stage runs it in the project root)
+#   CURL       curl (default curl from PATH)
+#   APKSIGNER  passed on to sign
+gradlew=${GRADLEW:-./gradlew}
+curl=${CURL:-curl}
+
+tasks=$(cd "$(dirname "$0")" && pwd)
+cd "${MISE_PROJECT_ROOT:-$tasks/..}"
+cert=config/release-cert.pem
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+(($# == 1)) || die "usage: stage <tag>"
+tag=$1
+
+# The secrets leave the exported environment first, so no child process inherits them. Only sign gets the key.
+# GITHUB_TOKEN is not needed; stage removes it in case the workflow passes it. This is no sandbox: code of the same
+# user (a Gradle plugin, for example) can still read the parent processes' environment in /proc
+# (docs/architecture.md, section 7).
+key=${RELEASE_SIGNING_KEY:-}
+unset GITHUB_TOKEN RELEASE_SIGNING_KEY
+[[ -n $key ]] || die "RELEASE_SIGNING_KEY is missing or empty. stage does not build without a key."
+url=${BLOCKLIST_URL:-}
+[[ $url == http://* || $url == https://* ]] || die "BLOCKLIST_URL is no http(s) address: \"$url\"."
+# A fork's release must read the fork's releases: the repo that publishes the release is the self-update repo.
+repo=${GITHUB_REPOSITORY:-}
+[[ -n $repo ]] || die "GITHUB_REPOSITORY is missing. stage does not build without a repo for the self-update."
+[[ -f $cert ]] || die "$cert is missing."
+
+# The EXIT trap removes the temp files.
+candidate='' config=''
+trap 'rm -f ${candidate:+"$candidate"} ${config:+"$config"}' EXIT
+
+version=$(bash "$tasks/version" check "$tag") || exit 1
+# The build must be exactly the tagged commit.
+commit=$(git rev-parse -q --verify "refs/tags/$tag^{commit}") || die "Tag $tag is missing in the checkout."
+[[ $(git rev-parse -q --verify HEAD) == "$commit" ]] || die "HEAD is not the commit of tag $tag."
+
+# Blocklist: a failed download stops here. acceptBlocklist checks the list; it reads the URL from a temp local.json.
+# The old copy blocklist.txt goes first, so a rejected list stops the build instead of falling back to it.
+echo "Downloading blocklist $url …" >&2
+candidate=$(mktemp "${TMPDIR:-/tmp}/stage-blocklist.XXXXXX") || die "Cannot create a temp file for the blocklist."
+"$curl" -fsSL --max-time 60 -o "$candidate" "$url" || die "Blocklist from $url not downloaded."
+config=$(mktemp "${TMPDIR:-/tmp}/stage-local-json.XXXXXX") || die "Cannot create a temp file for the local config."
+jq -n --arg url "$url" '{blocklist: $url}' >"$config" || die "Local config not written."
+rm -f blocklist.txt || die "blocklist.txt not deleted."
+
+unsigned=app/build/outputs/apk/release/app-release-unsigned.apk
+apk=app/build/outputs/apk/release/pr0gramm-tv.apk
+rm -f "$unsigned" "$apk"
+echo "Building release $version …" >&2
+"$gradlew" -q acceptBlocklist assembleRelease -PreleaseSigned=true "-PappVersion=$version" \
+  "-PupdateRepo=$repo" "-PlocalJson=$config" "-PblocklistCandidate=$candidate" >&2 ||
+  die "Build failed (blocklist or app, see above)."
+[[ -f $unsigned ]] || die "$unsigned is missing after the build."
+echo "Signing …" >&2
+RELEASE_SIGNING_KEY=$key bash "$tasks/sign" "$unsigned" "$apk" >&2 || exit 1
+key=''
+
+echo "version=$version"
+echo "apk=$apk"

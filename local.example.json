@@ -1,0 +1,4 @@
+{
+  "adb": "192.0.2.10:5555",
+  "blocklist": "https://lists.example.org/domains.txt"
+}

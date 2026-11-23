@@ -1,0 +1,35 @@
+# CI (AC12): every push and every pull request runs mise run test, the same gate as on a developer machine.
+# mise-action installs mise and the tools of mise.toml (Java, Android SDK command-line tools). sdkmanager then adds
+# the SDK packages that mise.toml names. The job reads the repo only: no secret, no environment, no write permission.
+# tests/ci-test.sh checks this file.
+name: ci
+
+on: [push, pull_request]
+
+permissions: {}
+
+# Every run script uses bash -eo pipefail.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@v2
+
+      # The SDK licenses first (sdkmanager asks once per license), then the packages of mise.toml.
+      - name: Android SDK
+        run: |
+          mise exec -- sdkmanager --licenses >/dev/null < <(yes)
+          mise exec -- sdkmanager "platforms;android-37.0" "build-tools;37.0.0" >/dev/null
+
+      - name: Test
+        run: mise run test

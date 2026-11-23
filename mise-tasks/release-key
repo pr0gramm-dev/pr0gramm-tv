@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#MISE description="Create the release key once: the key into your secret store, the certificate to config/release-cert.pem"
+set -uo pipefail
+# Environment (docs/release.md, "Release key"). Set both in mise.local.toml (gitignored):
+#   RELEASE_KEY_STORE_COMMAND  a shell command that reads the new key (base64 PKCS#8, one line) on stdin and stores it,
+#                              for example "pass insert -m pr0gramm-tv/release-key". Required.
+#   RELEASE_KEY_COMMAND        a shell command that prints the stored key. Optional here: when it is set, release-key
+#                              stops if a key exists already, and reads the new key back before it writes the certificate.
+# The key exists only in this shell's memory and in pipes; no file holds it.
+
+cd "${MISE_PROJECT_ROOT:-$(dirname "$0")/..}"
+cert=config/release-cert.pem
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+(($# == 0)) || die "release-key takes no arguments: mise run release-key"
+command -v openssl >/dev/null 2>&1 || die "openssl not found."
+[[ -n ${RELEASE_KEY_STORE_COMMAND:-} ]] ||
+  die "RELEASE_KEY_STORE_COMMAND is not set. Set a command that stores the key from stdin. See docs/release.md."
+# A key is created once for the life of the app: every TV accepts updates only from the same certificate.
+[[ -e $cert ]] && die "$cert exists already. release-key never replaces a key: without it, the TVs get no more updates."
+if [[ -n ${RELEASE_KEY_COMMAND:-} && -n $(bash -c "$RELEASE_KEY_COMMAND" 2>/dev/null) ]]; then
+  die "RELEASE_KEY_COMMAND prints a key already, but $cert is missing. Resolve this by hand. Nothing changed."
+fi
+
+# EC P-256, PKCS#8 DER as base64 on one line.
+key=$(openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -outform DER 2>/dev/null | base64 | tr -d '\n')
+[[ -n $key ]] || die "openssl created no key."
+pem=$(openssl req -new -x509 -sha256 -days 10950 -subj "/CN=pr0gramm-tv release" \
+  -key <(printf %s "$key" | base64 -d) -keyform DER 2>/dev/null) && [[ $pem == "-----BEGIN CERTIFICATE-----"* ]] ||
+  die "openssl created no certificate."
+digest=$(printf '%s\n' "$pem" | openssl x509 -outform DER | shasum -a 256 | cut -d' ' -f1)
+
+printf '%s\n' "$key" | bash -c "$RELEASE_KEY_STORE_COMMAND" ||
+  die "RELEASE_KEY_STORE_COMMAND failed. $cert is not written. Delete a partly stored key, then try again."
+if [[ -n ${RELEASE_KEY_COMMAND:-} ]]; then
+  [[ $(bash -c "$RELEASE_KEY_COMMAND" 2>/dev/null | tr -d '\n') == "$key" ]] ||
+    die "RELEASE_KEY_COMMAND does not print the new key. $cert is not written. Check your secret store."
+fi
+unset key
+
+mkdir -p "$(dirname "$cert")" && printf '%s\n' "$pem" >"$cert" ||
+  die "$cert is not written. Write this certificate to $cert by hand:"$'\n'"$pem"
+echo "Done: the key is in your secret store, the certificate is in $cert (SHA-256 $digest)."
+echo "Commit $cert now. Never delete or replace the key: TVs accept updates only from this certificate."

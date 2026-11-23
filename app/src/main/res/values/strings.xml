@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English, the default language (AC2). values-de/strings.xml has the same keys and placeholders (StringsXmlTest). -->
+<resources>
+    <!-- Day texts and dates (AC10). The date_* values are DateTimeFormatter patterns, formatted with format_locale. -->
+    <string name="day_today">today</string>
+    <string name="day_yesterday">yesterday</string>
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+    <string name="day_saved">saved %1$s</string>
+    <string name="date_day">MMM d</string>
+    <string name="date_full">MMM d, yyyy</string>
+    <string name="date_day_time">MMM d, h:mm a</string>
+    <!-- Side panels (core/designsystem): the keys line and the group heading of the tile menu and the page menu. -->
+    <string name="panel_keys">*OK* confirms · *Gear* or *Back* closes</string>
+    <string name="panel_saved_on">Saved on %1$s</string>
+    <!-- Rows of the home screen (ui/launcher/HomeScreen.kt); the shelves name the first two rows. -->
+    <string name="home_sites">Sites</string>
+    <string name="home_apps">Apps</string>
+    <!-- The settings button in the header of the home screen (ui/launcher/HomeHeader.kt). -->
+    <string name="home_settings">⚙ Settings</string>
+    <!-- Shelves of saved pages. -->
+    <string name="shelf_continue_watching">Continue Watching</string>
+    <string name="shelf_my_list">My List</string>
+    <!-- Sub line under a tile (ui/launcher/TileText.kt). -->
+    <string name="tile_last_opened">last opened: %1$s</string>
+    <string name="tile_not_installed">Not installed</string>
+    <string name="tile_waiting">Waiting…</string>
+    <string name="tile_downloading">Downloading… %1$d%%</string>
+    <string name="tile_check_failed">Error: file check failed</string>
+    <string name="tile_installed">Installed</string>
+    <!-- Tile menu (ui/launcher/TileMenu.kt); the sub line also shows tile_favorite and tile_update_available. -->
+    <string name="tile_kicker_site">Site</string>
+    <string name="tile_kicker_app">App</string>
+    <string name="tile_badge_install">Install</string>
+    <string name="tile_badge_error">Error</string>
+    <string name="tile_badge_update">Update</string>
+    <string name="tile_favorite">Favorite</string>
+    <string name="tile_update_available">Update available</string>
+    <string name="tile_installed_current">installed · up to date</string>
+    <string name="tile_not_installed_lower">not installed</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_install">Install</string>
+    <string name="menu_update">Update</string>
+    <string name="menu_favorite_on">Make favorite</string>
+    <string name="menu_favorite_off">Remove favorite</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_add_my_list">Add to My List</string>
+    <string name="menu_remove_from">Remove from %1$s</string>
+    <!-- Page menu (ui/browser/PageMenu.kt). -->
+    <string name="page_menu_kicker">Current page</string>
+    <string name="page_menu_on_site">on %1$s</string>
+    <string name="page_menu_add">Add to My List</string>
+    <string name="page_menu_pointer">Switch to Pointer</string>
+    <string name="page_menu_focus">Switch to Focus</string>
+    <string name="page_menu_saved_hint">OK opens the page here</string>
+    <!-- Notices over the page (ui/browser/Notice.kt); the title is control_pointer or control_focus. -->
+    <string name="notice_pointer_hint">Arrow keys move the pointer, OK clicks</string>
+    <string name="notice_focus_hint">Arrow keys move the focus from link to link</string>
+    <!-- My List messages in the browser (ui/browser/SaveMessages.kt). -->
+    <string name="save_added">\"%1$s\" is now in My List</string>
+    <string name="save_removed">Removed \"%1$s\" from My List</string>
+    <string name="save_not_in_list">This page is not in My List</string>
+    <string name="save_not_savable">The app cannot save this page</string>
+    <string name="save_start_page">This page is the start URL of %1$s</string>
+    <string name="save_full">My List is full (%1$d). Remove an entry first.</string>
+    <!-- Browser notices (ui/browser/Navigation.kt, BrowserScreen.kt, FullscreenRecorder.kt). -->
+    <string name="browser_ad_blocked">Ad blocked</string>
+    <string name="browser_redirect_blocked">Redirect blocked</string>
+    <string name="browser_no_downloads">Downloads not supported</string>
+    <string name="browser_page_crashed">Page crashed</string>
+    <!-- Site settings (ui/launcher/settings/SettingsForm.kt, SettingsScreen.kt); control_* also name the control elsewhere. -->
+    <string name="settings_control">Control</string>
+    <string name="control_pointer">Pointer</string>
+    <string name="control_focus">Focus</string>
+    <string name="settings_size">Size</string>
+    <string name="settings_size_value">%1$d%%</string>
+    <string name="settings_layout">Layout</string>
+    <string name="settings_layout_desktop">Computer</string>
+    <string name="settings_layout_normal">Normal</string>
+    <string name="settings_blocklist">Ad blocker</string>
+    <string name="settings_on">On</string>
+    <string name="settings_off">Off</string>
+    <string name="settings_favorite">Favorite</string>
+    <string name="settings_yes">Yes</string>
+    <string name="settings_no">No</string>
+    <string name="settings_reset">Reset all</string>
+    <string name="settings_site_scope">Applies only to %1$s, from the next time you open the site.</string>
+    <string name="settings_site_hint">Settings of this site. The text on the right says what the selected row changes.</string>
+    <!-- Pointer looks (data/appsettings PointerLook): row value and help option name. -->
+    <string name="pointer_hand">Hand</string>
+    <string name="pointer_glow">Bright dot</string>
+    <!-- Help panel next to a settings list (ui/launcher/settings/SettingsHelp.kt, NightList.kt). -->
+    <string name="help_general_scope">Applies to the whole app.</string>
+    <string name="help_server_intro">The address from which the app loads the catalog. Press OK to type a new address.</string>
+    <string name="help_server_note">When you save a different address, the app restarts. Each server has its own My List and Continue Watching.</string>
+    <string name="help_controls_intro">Shows what each key does on the home screen, on a page and in full screen.</string>
+    <string name="help_controls_topic">The basics</string>
+    <string name="help_controls_topic_text">Gear opens the menu of the selected item on every screen. On a page, hold OK to switch between Pointer and Focus. Hold Back to go to the home screen.</string>
+    <string name="help_controls_note">Press OK to show all keys.</string>
+    <string name="help_about_intro">The app version, the catalog version, the server and the time of the last update check.</string>
+    <string name="help_check_intro">Asks GitHub for a new version of this app. The app downloads a new version and installs it on the next visit to the home screen.</string>
+    <string name="help_check_note">The app also checks by itself when the home screen opens, at most once an hour.</string>
+    <string name="help_pointer_intro">The look of the pointer on sites with the control Pointer.</string>
+    <string name="help_pointer_hand">An orange hand, as on a Mac. The click is at the fingertip.</string>
+    <string name="help_pointer_glow">A bright dot, like the dot of a laser. The click is at its center.</string>
+    <!-- Language row (data/appsettings LanguageChoice): row value and help option name; "English" and "Deutsch" are not resources (AC5). -->
+    <string name="language_system">System language</string>
+    <string name="help_language_intro">The language of all app texts. Press OK to set the next language.</string>
+    <string name="help_language_system">The language of the TV. If the app does not have that language, the app uses English.</string>
+    <string name="help_language_english">All app texts in English.</string>
+    <string name="help_language_german">All app texts in German.</string>
+    <string name="help_language_note">The app asks sites for the app language. Texts from the catalog do not change.</string>
+    <string name="help_zoom_intro">Makes the text, images and buttons of the whole page larger or smaller.</string>
+    <string name="help_zoom_note">Press ◀ ▶ to change the size in steps. Default for %1$s: %2$d%%.</string>
+    <string name="help_layout_normal">The site shows its layout for Android.</string>
+    <string name="help_layout_desktop">The site thinks that the TV is a computer and shows its full layout. Use Computer when parts are missing or the site looks too coarse.</string>
+    <string name="help_blocklist_on">The app loads nothing from known ad and tracker domains. You get fewer pop-ups. The page loads faster.</string>
+    <string name="help_blocklist_off">The app loads everything. Use Off when the page does not load or a video does not start with On.</string>
+    <string name="help_favorite_yes">The site is at the front of the Sites row and has a star.</string>
+    <string name="help_favorite_no">The site comes after the favorites. Recently opened sites come earlier.</string>
+    <string name="help_favorite_note">You can also make the site a favorite in the tile menu. To open the tile menu, press Gear or hold OK.</string>
+    <string name="help_reset_intro">Sets all settings of this site back to the defaults.</string>
+    <string name="help_reset_note">My List, Continue Watching and your logins on the site do not change.</string>
+    <string name="help_control_focus">The arrow keys move the focus from link to link. OK opens the link.</string>
+    <string name="help_control_pointer">The arrow keys move the pointer. OK clicks. Use Pointer on sites where the focus cannot reach all parts.</string>
+    <string name="help_control_note">You can also hold OK on a page to change the control. The app keeps the choice for the site.</string>
+    <string name="help_active">active</string>
+    <!-- General settings page (ui/launcher/settings/General.kt, GeneralScreen.kt): rows, status line and about lines. -->
+    <string name="general_title">Settings</string>
+    <string name="general_about_title">About the app</string>
+    <string name="general_list_hint">Applies to the whole app. For the settings of a site, press Gear or hold OK on its tile.</string>
+    <string name="general_about_hint">pr0gramm for Android TV.</string>
+    <string name="general_check">Check for updates</string>
+    <string name="general_server">Server</string>
+    <string name="general_pointer">Pointer look</string>
+    <string name="general_language">Language</string>
+    <string name="general_controls">Remote keys</string>
+    <string name="general_about_version">Version</string>
+    <string name="general_about_catalog">Catalog</string>
+    <string name="general_about_catalog_value">%1$d from %2$s</string>
+    <string name="general_none">none</string>
+    <string name="general_about_checked">Last check</string>
+    <string name="general_not_yet">not yet</string>
+    <string name="general_checking">Checking…</string>
+    <string name="general_version">Version %1$s</string>
+    <string name="general_up_to_date">Version %1$s · up to date</string>
+    <string name="general_downloading">Downloading app update · %1$d%%</string>
+    <string name="general_ready">App update ready, installs on the next visit to the home screen</string>
+    <string name="general_deploy_only">New version, installs only with a deploy</string>
+    <string name="general_not_allowed">Installation not allowed</string>
+    <string name="general_install_failed">Update did not install</string>
+    <string name="general_retry">Try the update again</string>
+    <!-- Failures (General.failure, General.updateFailure); also shown by NoCatalog and ServerDialog. -->
+    <string name="failure_github_unreachable">Cannot reach GitHub</string>
+    <string name="failure_bad_release">Release on GitHub not valid</string>
+    <string name="failure_server_unreachable">Cannot reach the server</string>
+    <string name="failure_bad_catalog">Catalog not valid</string>
+    <string name="failure_broken_apk">Update damaged</string>
+    <string name="failure_other_key">Update has a different signature</string>
+    <string name="failure_install_failed">Installation failed</string>
+    <string name="failure_cancelled">Installation canceled</string>
+    <!-- Remote keys page (ui/launcher/settings/Controls.kt, ControlsScreen.kt). *words* are shown brighter. -->
+    <string name="controls_gear">⚙\uFE0E Gear</string>
+    <string name="controls_key_back">Back</string>
+    <string name="controls_hold">(hold)</string>
+    <string name="controls_hint">The remote keys at each place in the app.</string>
+    <string name="controls_foot">The ⚙\uFE0E Gear key is on the TCL remote. If the remote has no Gear key, hold OK on the home screen to open the tile menu. Back closes this screen.</string>
+    <string name="controls_place_home">Home screen</string>
+    <string name="controls_select_tile">Select a tile</string>
+    <string name="controls_open_tile">Open the tile</string>
+    <string name="controls_tile_menu">*Tile menu*</string>
+    <string name="controls_tile_menu_held">Tile menu, also without Gear</string>
+    <string name="controls_leave_app">Leave the app</string>
+    <string name="controls_place_page_focus">Page with Focus</string>
+    <string name="controls_focus_arrows">Move the focus from link to link</string>
+    <string name="controls_focus_ok">Open a link, start a video, open the keyboard in a text field</string>
+    <string name="controls_place_page_pointer">Page with Pointer</string>
+    <string name="controls_pointer_arrows">Move the pointer. At the edge, the page scrolls.</string>
+    <string name="controls_pointer_ok">Click where the pointer is</string>
+    <string name="controls_switch_to">Switch to *%1$s*</string>
+    <string name="controls_page_menu_full">*Page menu*: My List, saved pages</string>
+    <string name="controls_page_back">Go back one page</string>
+    <string name="controls_home_marked">*Go to the home screen*</string>
+    <string name="controls_place_fullscreen">Video in full screen</string>
+    <string name="controls_volume">Volume</string>
+    <string name="controls_seek">%1$d seconds back / forward</string>
+    <string name="controls_play_pause">Pause / play</string>
+    <string name="controls_page_menu">Page menu</string>
+    <string name="controls_leave_fullscreen">Leave full screen</string>
+    <string name="controls_home_plain">Go to the home screen</string>
+    <!-- Home screen without a catalog (ui/launcher/NoCatalog.kt). -->
+    <string name="nocatalog_retry">Try again</string>
+    <string name="nocatalog_enter_server">Enter server address</string>
+    <string name="nocatalog_no_server">No server set up</string>
+    <!-- Server dialog (ui/launcher/ServerDialog.kt). -->
+    <string name="server_title">Server</string>
+    <string name="server_hint">Address of the catalog server, for example tv.example.org</string>
+    <string name="server_busy">Checking address…</string>
+    <string name="server_connect">Connect</string>
+    <string name="server_bad_address">Address not valid</string>
+    <string name="server_rejected">%1$s: %2$s</string>
+    <!-- Manifest problems (ui/launcher/ProblemText.kt), one per ManifestProblem.Kind. -->
+    <string name="problem_at">%1$s: %2$s</string>
+    <string name="problem_json_char_expected">not valid JSON: \'%1$s\' expected (character %2$s)</string>
+    <string name="problem_json_value_expected">not valid JSON: value expected (character %1$s)</string>
+    <string name="problem_json_text_after_end">not valid JSON: text after the end (character %1$s)</string>
+    <string name="problem_json_too_deep">not valid JSON: nested deeper than %1$s levels (character %2$s)</string>
+    <string name="problem_json_key_expected">not valid JSON: field name in quotes expected (character %1$s)</string>
+    <string name="problem_json_duplicate_key">not valid JSON: field name \"%1$s\" is not unique (character %2$s)</string>
+    <string name="problem_json_unclosed_string">not valid JSON: string without a closing quote (character %1$s)</string>
+    <string name="problem_json_control_char">not valid JSON: control character in a string (character %1$s)</string>
+    <string name="problem_json_escape_end">not valid JSON: escape without a character (character %1$s)</string>
+    <string name="problem_json_unknown_escape">not valid JSON: unknown escape \\%1$s (character %2$s)</string>
+    <string name="problem_json_bad_unicode">not valid JSON: \\u needs four hex digits (character %1$s)</string>
+    <string name="problem_root_not_object">the top level must be an object</string>
+    <string name="problem_too_large">manifest.json is larger than 2 MiB</string>
+    <string name="problem_missing">missing</string>
+    <string name="problem_not_string">must be a string</string>
+    <string name="problem_blank">must not be empty</string>
+    <string name="problem_not_boolean">must be true or false (without quotes)</string>
+    <string name="problem_not_whole">must be a whole number</string>
+    <string name="problem_too_big">%1$s is too large</string>
+    <string name="problem_not_positive">%1$s must be more than 0</string>
+    <string name="problem_not_string_list">must be a list of strings</string>
+    <string name="problem_bad_resource">\"%1$s\" must be a relative path such as img/a.png, or an http(s) URL with a host, without a user and without a fragment</string>
+    <string name="problem_version_range">%1$s must be between 1 and %2$s</string>
+    <string name="problem_bad_date">\"%1$s\" is not a date such as 2026-11-18</string>
+    <string name="problem_not_list">must be a list</string>
+    <string name="problem_not_object">must be an object</string>
+    <string name="problem_bad_id">\"%1$s\" must match [a-z][a-z0-9]*</string>
+    <string name="problem_duplicate">\"%1$s\" is not unique</string>
+    <string name="problem_bad_url">\"%1$s\" is not a valid http(s) URL</string>
+    <string name="problem_bad_color">\"%1$s\" must be #RRGGBB</string>
+    <string name="problem_zoom_range">%1$s not in %2$s–%3$s</string>
+    <string name="problem_bad_domain">\"%1$s\" is not a domain (no scheme, path or spaces)</string>
+    <string name="problem_bad_package">\"%1$s\" is not a package name such as org.a.b</string>
+    <string name="problem_own_package">\"%1$s\" is the package of this app</string>
+    <string name="problem_bad_sha256">must be 64 hex characters in lower case</string>
+
+    <!-- The only source of the format locale (AC10): a language tag for Locale.forLanguageTag. -->
+    <string name="format_locale">en</string>
+</resources>

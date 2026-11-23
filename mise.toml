@@ -1,0 +1,22 @@
+[tools]
+java = "temurin-17"
+android-sdk = "23.0"
+
+# Build needs SDK platform 37 and the emulator needs platform-tools, emulator and an
+# Android TV image. Install all of it once with: mise run android:setup
+# The image is a variable: override it per machine in the project's mise.local.toml
+# (gitignored; an Intel Mac or Linux needs another arch than arm64-v8a).
+
+[vars]
+android_tv_image = "system-images;android-36;android-tv;arm64-v8a"
+
+[env]
+# adb from the SDK's platform-tools (installed by android:setup)
+_.path = { path = ["{{env.ANDROID_HOME}}/platform-tools"], tools = true }
+
+[tasks."android:setup"]
+description = "Install platform-tools, emulator and the Android TV system image"
+run = [
+  "sdkmanager --licenses",
+  "sdkmanager platform-tools emulator \"{{vars.android_tv_image}}\"",
+]

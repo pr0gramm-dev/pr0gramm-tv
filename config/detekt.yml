@@ -1,0 +1,23 @@
+# detekt for the app, on top of detekt's default config (buildUponDefaultConfig in QualityPlugin).
+# Only deviations from the defaults belong here. No baseline: findings are fixed, or suppressed
+# with @Suppress plus a "// reason: …" comment (enforced by the sourceRules task).
+
+naming:
+  FunctionNaming:
+    # Compose names composable functions in PascalCase.
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    # Palette values and stage-pixel sizes are named by their property or constant.
+    ignorePropertyDeclaration: true
+
+complexity:
+  LongParameterList:
+    # Composables take their state and callbacks as parameters.
+    ignoreAnnotated: ['Composable']
+
+# detekt-formatting: ktlint's rules, reported by detekt.
+formatting:
+  active: true
+  autoCorrect: false

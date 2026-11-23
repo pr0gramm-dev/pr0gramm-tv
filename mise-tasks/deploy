@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+#MISE description="Build the release app and install it on the TV: mise run deploy"
+set -uo pipefail
+
+tasks=$(cd "$(dirname "$0")" && pwd)
+cd "${MISE_PROJECT_ROOT:-$tasks/..}"
+config=local.json
+gradle_app=app/build.gradle.kts
+unsigned=app/build/outputs/apk/release/app-release-unsigned.apk
+apk=app/build/outputs/apk/release/app-release.apk
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+(($# == 0)) || die "deploy takes no arguments: mise run deploy"
+
+# The package ID has one source: applicationId in app/build.gradle.kts.
+pkg=$(sed -n 's/^[[:space:]]*applicationId = "\([^"]*\)".*/\1/p' "$gradle_app" 2>/dev/null)
+[[ $pkg =~ ^[A-Za-z0-9_.]+$ ]] || die "$gradle_app: exactly one line applicationId = \"<package>\" is missing."
+
+[[ -f $config ]] || die "$config is missing: copy local.example.json to $config and fill in the fields."
+jq -e . "$config" >/dev/null 2>&1 || die "$config is no valid JSON."
+adb_addr=$(jq -r '.adb | strings' "$config")
+[[ -n $adb_addr ]] || die "$config: \"adb\" is missing, for example \"adb\": \"192.0.2.10:5555\""
+
+# Release key: checked before anything is built (mise-tasks/sign, docs/release.md). Never falls back to the debug key.
+bash "$tasks/sign" --check || exit 1
+
+# App version (AC10): the highest local tag vMAJOR.MINOR.PATCH, 0.0.1 without one. A release on the TV is then never
+# newer than deploy.
+version=$(MISE_PROJECT_ROOT=$PWD bash "$tasks/version" highest) ||
+  die "Cannot find the app version from the tags vMAJOR.MINOR.PATCH."
+
+# The temp file lives outside the repo and is removed on every exit.
+candidate=$(mktemp "${TMPDIR:-/tmp}/pr0gramm-tv-blocklist.XXXXXX") || die "Cannot create a temp file for the blocklist."
+trap 'rm -f "$candidate"' EXIT
+
+# Blocklist: only download the raw list. Gradle (acceptBlocklist) checks it and keeps blocklist.txt.
+gradle_args=(-q acceptBlocklist assembleRelease -PreleaseSigned=true "-PappVersion=$version")
+blocklist_url=$(jq -r '.blocklist | strings' "$config")
+if [[ $blocklist_url == http://* || $blocklist_url == https://* ]]; then
+  echo "Downloading blocklist $blocklist_url …"
+  if curl -fsSL --max-time 60 -o "$candidate" "$blocklist_url"; then
+    gradle_args+=("-PblocklistCandidate=$candidate")
+  else
+    echo "Warning: blocklist from $blocklist_url not downloaded. Gradle uses the old copy blocklist.txt if it exists." >&2
+  fi
+fi
+
+# The TV counts as connected only when get-state says "device".
+connect() {
+  local state
+  state=$(adb -s "$adb_addr" get-state 2>&1 | tr -d '\r')
+  [[ $state == device ]] && return 0
+  adb connect "$adb_addr" >/dev/null 2>&1
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    state=$(adb -s "$adb_addr" get-state 2>&1 | tr -d '\r')
+    [[ $state == device ]] && return 0
+    [[ $state == *unauthorized* ]] && break
+    sleep 1
+  done
+  if [[ $state == *unauthorized* ]]; then
+    echo "Error: confirm debugging on the TV (dialog \"Allow USB debugging\"), then start deploy again." >&2
+  else
+    echo "Error: cannot reach the TV at $adb_addr. Is the TV on, and is ADB debugging enabled?" >&2
+  fi
+  return 1
+}
+
+connect || exit 1
+
+echo "Building release …"
+rm -f "$unsigned" "$apk"
+./gradlew "${gradle_args[@]}" || die "Build failed."
+[[ -f $unsigned ]] || die "$unsigned is missing after the build."
+echo "Signing …"
+bash "$tasks/sign" "$unsigned" "$apk" || exit 1
+
+echo "Installing $pkg …"
+out=$(adb -s "$adb_addr" install -r "$apk" 2>&1)
+if [[ $out != *Success* && $out != *INSTALL_FAILED* ]]; then
+  # Connection trouble, not an install error: reconnect once and retry.
+  if connect; then out=$(adb -s "$adb_addr" install -r "$apk" 2>&1); fi
+fi
+
+result=FAILED
+if [[ $out == *Success* ]]; then
+  result=ok
+  # A fresh install runs interpreted until Android compiles it in the background (on the test TV about 24 ms per
+  # frame instead of 12). Compile it fully now; a failure only costs smoothness, not the install.
+  echo "Compiling $pkg …"
+  adb -s "$adb_addr" shell cmd package compile -m speed -f "$pkg" >/dev/null 2>&1 ||
+    echo "Warning: compile failed. The app stutters until Android compiles it in the background." >&2
+elif [[ $out == *INSTALL_FAILED_UPDATE_INCOMPATIBLE* ]]; then
+  echo "  The signature does not match the installed app. Fix it by hand (this deletes My List and the app settings):" >&2
+  echo "    adb -s $adb_addr uninstall $pkg" >&2
+else
+  echo "  $(tail -n 3 <<<"$out")" >&2
+fi
+
+echo
+echo "Summary:"
+printf '  %-8s %s\n' "$result" "$pkg"
+[[ $result == ok ]]

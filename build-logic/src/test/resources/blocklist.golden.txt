@@ -1,0 +1,3 @@
+ads.example.com
+tracker.example.org
+cdn-1.example.io

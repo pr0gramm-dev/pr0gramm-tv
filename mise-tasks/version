@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+#MISE description="Release versions from git tags vMAJOR.MINOR.PATCH: version highest | version check <tag>"
+#MISE hide=true
+set -uo pipefail
+# AC10. A SemVer tag is vMAJOR.MINOR.PATCH without leading zeros, MINOR and PATCH at most 99, and a versionCode
+# MAJOR*10000 + MINOR*100 + PATCH from 1 to 2100000000: the same rule as AppVersion (core/appversion), which the build
+# and the self-update use. Other tags are no SemVer tag. Tags compare by versionCode.
+#   version highest      prints MAJOR.MINOR.PATCH of the highest local SemVer tag, 0.0.1 without one (mise run deploy)
+#   version check <tag>  prints MAJOR.MINOR.PATCH when <tag> may become a release, else stops with an error:
+#                        <tag> must be greater than every other SemVer tag, and the tagged commit must be an ancestor
+#                        of origin/main.
+
+cd "${MISE_PROJECT_ROOT:-$(dirname "$0")/..}"
+max=2100000000
+form='vMAJOR.MINOR.PATCH (no leading zeros, MINOR and PATCH ≤ 99)'
+
+die() { echo "Error: $*" >&2; exit 1; }
+usage() { die "usage: version highest | version check <tag>"; }
+
+# Prints "<code> MAJOR.MINOR.PATCH" when $1 has the tag form, else fails. MAJOR has at most 10 digits, so the code never
+# overflows bash arithmetic; the caller checks the range 1..max.
+tag_parts() {
+  [[ $1 =~ ^v(0|[1-9][0-9]{0,9})\.(0|[1-9][0-9]?)\.(0|[1-9][0-9]?)$ ]] || return 1
+  local major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[3]}
+  echo "$((major * 10000 + minor * 100 + patch)) $major.$minor.$patch"
+}
+
+# Prints "<code> MAJOR.MINOR.PATCH" of the highest SemVer tag except $1, "0 0.0.0" without one.
+highest_tag() {
+  local tags tag parts code top=0 name=0.0.0
+  tags=$(git tag --list 'v*') || die "git tag failed."
+  while IFS= read -r tag; do
+    [[ $tag != "${1:-}" ]] && parts=$(tag_parts "$tag") || continue
+    code=${parts%% *}
+    ((code >= 1 && code <= max && code > top)) && top=$code name=${parts#* }
+  done <<<"$tags"
+  echo "$top $name"
+}
+
+highest() {
+  local top
+  top=$(highest_tag) || exit 1
+  [[ ${top%% *} == 0 ]] && echo 0.0.1 || echo "${top#* }"
+}
+
+check() {
+  local tag=$1 parts code top commit
+  parts=$(tag_parts "$tag") || die "Tag \"$tag\" does not have the form $form."
+  code=${parts%% *}
+  ((code >= 1 && code <= max)) || die "Tag $tag: the versionCode $code is not between 1 and $max."
+  commit=$(git rev-parse -q --verify "refs/tags/$tag^{commit}") || die "Tag $tag is missing in the checkout."
+
+  top=$(highest_tag "$tag") || exit 1
+  ((code > ${top%% *})) || die "Tag $tag is not greater than the tag v${top#* }."
+
+  git rev-parse -q --verify refs/remotes/origin/main >/dev/null || die "origin/main is missing in the checkout."
+  git merge-base --is-ancestor "$commit" refs/remotes/origin/main ||
+    die "The commit of tag $tag is not an ancestor of origin/main."
+  echo "${parts#* }"
+}
+
+case "${1:-} $#" in
+  "highest 1") highest ;;
+  "check 2") check "$2" ;;
+  *) usage ;;
+esac

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app languages for LocaleManager and the Android settings (AC3): en (values/) and one entry per values-xx/.
+     StringsXmlTest checks this list against the values-* folders. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="de" />
+</locale-config>

@@ -1,0 +1,92 @@
+# Tag release (AC11): a push of a tag vMAJOR.MINOR.PATCH builds and signs the app and creates the GitHub Release
+# with that tag in this repo ($GITHUB_REPOSITORY). The release has exactly one asset, pr0gramm-tv.apk.
+# Two jobs, each with its own permissions: build (contents: read) and release (contents: write).
+# The runner changes no file in the repo: no commit, no push to a branch.
+# The owner sets up: the environment release (deployment tags v* only) with the secret RELEASE_SIGNING_KEY
+# (base64 PKCS#8), and the repo variable BLOCKLIST_URL.
+# tests/ci-test.sh checks this file and runs the script of the step GitHub Release with a gh stub.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# One release at a time; a running release is never cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+# Every run script uses bash -eo pipefail.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # The signing key is an environment secret: only a job in the environment release sees it, and the environment
+    # admits only tags v*. A workflow on another branch cannot read the key.
+    environment: release
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.stage.outputs.version }}
+    steps:
+      # All history and tags: mise-tasks/version compares the tag with every other SemVer tag and with origin/main.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The SDK packages of mise.toml, through the sdkmanager of the runner. sign takes apksigner from PATH.
+      - name: Android SDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;37.0.0" >/dev/null
+          echo "$ANDROID_HOME/build-tools/37.0.0" >>"$GITHUB_PATH"
+
+      # Admission (AC10), blocklist, build and signing. stage removes the key from the environment that Gradle
+      # inherits (no sandbox against Gradle plugins, see stage).
+      # stdout: version=MAJOR.MINOR.PATCH and apk=<path of pr0gramm-tv.apk>.
+      - name: Stage the release
+        id: stage
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+          BLOCKLIST_URL: ${{ vars.BLOCKLIST_URL }}
+        run: bash mise-tasks/stage "$GITHUB_REF_NAME" >>"$GITHUB_OUTPUT"
+
+      # The artifact holds the one file pr0gramm-tv.apk.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: ${{ steps.stage.outputs.apk }}
+          if-no-files-found: error
+
+  # The only job with contents: write. It has no checkout and runs no code from the repo.
+  # --verify-tag: gh creates no tag; the release needs the pushed tag.
+  # When only this job fails, "Re-run failed jobs" repeats it with the APK of the same build.
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: apk
+
+      - name: GitHub Release
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" apk/pr0gramm-tv.apk --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes "Signed app version $VERSION."

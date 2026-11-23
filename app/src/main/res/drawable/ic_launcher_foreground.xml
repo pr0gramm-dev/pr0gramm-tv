@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A tilted cinema ticket in Night.Focus: corners cut top right and bottom left like the UI,
+  a dashed tear line before the stub and three print lines. Scaled to stay inside the 66 dp safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-14"
+        android:scaleX="0.88"
+        android:scaleY="0.88">
+        <path
+            android:fillColor="#FFFF6B1A"
+            android:pathData="M22,38H65A5,5 0,0 0,75,38H80L86,44V70H75A5,5 0,0 0,65,70H28L22,64Z" />
+        <path
+            android:fillColor="#FF0E0E10"
+            android:pathData="M69.1,45H70.9V47.6H69.1Z M69.1,49.6H70.9V52.2H69.1Z M69.1,54.2H70.9V56.8H69.1Z
+                M69.1,58.8H70.9V61.4H69.1Z" />
+        <path
+            android:fillColor="#FF0E0E10"
+            android:pathData="M29,45.9H58V48.1H29Z M29,52.9H52V55.1H29Z M29,59.9H46V62.1H29Z" />
+    </group>
+</vector>

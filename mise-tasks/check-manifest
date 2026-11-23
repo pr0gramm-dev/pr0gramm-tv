@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#MISE description="Check a catalog manifest.json and the files it names: mise run check-manifest <file> [--apks]"
+set -uo pipefail
+# AC14. Runs checkManifest of build-logic: the app's own parser, then every image the manifest names must exist next
+# to it. Without --apks the check skips the APKs (-PskipApks); with --apks every APK must exist and match its sha256
+# and size. A relative <file> counts from the directory mise was started in.
+
+caller=${MISE_ORIGINAL_CWD:-$PWD}
+cd "${MISE_PROJECT_ROOT:-$(dirname "$0")/..}" || exit 1
+
+die() { echo "Error: $*" >&2; exit 1; }
+usage() { die "usage: check-manifest <file> [--apks]"; }
+
+file= skip=-PskipApks
+for arg; do
+  case $arg in
+    --apks) skip= ;;
+    -*) usage ;;
+    *) [[ -z $file ]] || usage; file=$arg ;;
+  esac
+done
+[[ -n $file ]] || usage
+[[ $file == /* ]] || file=$caller/$file
+[[ -f $file ]] || die "$file: file not found."
+
+./gradlew --quiet -p build-logic checkManifest "-Pmanifest=$file" ${skip:+"$skip"}

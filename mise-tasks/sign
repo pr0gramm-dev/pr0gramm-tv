@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+#MISE description="Sign a release APK with the release key (used by deploy and stage): mise run sign <in.apk> <out.apk> | sign --check"
+#MISE hide=true
+set -uo pipefail
+# Key sources, in this order (docs/release.md, "Release key"):
+#   RELEASE_SIGNING_KEY  the key itself: base64 PKCS#8 on one line (the CI secret). Set but empty stops sign;
+#                        RELEASE_KEY_COMMAND is then not the fallback.
+#   RELEASE_KEY_COMMAND  a shell command that prints the key, for example a password manager CLI. Set it in
+#                        mise.local.toml (gitignored), for example: RELEASE_KEY_COMMAND = "pass show pr0gramm-tv/release-key"
+# sign --check reads the key and checks the certificate, then exits without signing (mise-tasks/deploy runs it before
+# the build).
+# External tools, replaceable for tests/sign-test.sh and tests/stage-test.sh:
+#   APKSIGNER  apksigner of the Android build tools (default apksigner from PATH, through mise)
+apksigner=${APKSIGNER:-apksigner}
+
+cd "${MISE_PROJECT_ROOT:-$(dirname "$0")/..}"
+cert=config/release-cert.pem
+
+die() { echo "Error: $*" >&2; exit 1; }
+
+check_only=false
+if [[ $# -eq 1 && $1 == --check ]]; then
+  check_only=true
+else
+  [[ $# -eq 2 ]] || die "usage: sign <unsigned.apk> <signed.apk> | sign --check"
+  in=$1 out=$2
+  [[ -f $in ]] || die "$in is missing."
+fi
+[[ -f $cert ]] || die "$cert is missing. Create the release key once: mise run release-key"
+
+if [[ ${RELEASE_SIGNING_KEY+set} ]]; then
+  [[ -n $RELEASE_SIGNING_KEY ]] || die "RELEASE_SIGNING_KEY is set but empty. sign does not sign without a key."
+  source_name=RELEASE_SIGNING_KEY
+  read_key() { printf '%s' "$RELEASE_SIGNING_KEY"; }
+elif [[ -n ${RELEASE_KEY_COMMAND:-} ]]; then
+  source_name="the output of RELEASE_KEY_COMMAND"
+  read_key() { bash -c "$RELEASE_KEY_COMMAND"; }
+  # The check discards the key; only the exit code and "not empty" count.
+  [[ -n $(read_key 2>/dev/null) ]] || die "RELEASE_KEY_COMMAND failed or printed nothing. Unlock your secret store and try again."
+else
+  die "No release key. Set RELEASE_KEY_COMMAND (for example in mise.local.toml) or RELEASE_SIGNING_KEY. See docs/release.md."
+fi
+
+$check_only && exit 0
+command -v "$apksigner" >/dev/null 2>&1 || die "apksigner not found (Android build tools, through mise)."
+
+# The key goes from its source through a pipe to apksigner; it is never written to a file.
+rm -f "$out"
+# A failed apksigner can leave a partial APK behind: remove it, so nothing unsigned is installed or published.
+if ! "$apksigner" sign --key <(read_key | tr -d '\n' | base64 -d) --cert "$cert" --out "$out" "$in"; then
+  rm -f "$out"
+  die "apksigner could not sign: $source_name is no base64 PKCS#8 key, or it does not match $cert."
+fi
+
+# The signer must be exactly the certificate in the repo: Android accepts updates only from the same certificate.
+want=$(openssl x509 -in "$cert" -outform DER | shasum -a 256 | cut -d' ' -f1)
+# Every signer line ("Signer #1 …" for v1/v2, "V3.0 Signer: …" for v3) must name this one certificate.
+got=$("$apksigner" verify --print-certs "$out" 2>/dev/null | sed -n 's/^.*Signer.*certificate SHA-256 digest: //p' | sort -u)
+if [[ -z $got || $got != "$want" ]]; then
+  rm -f "$out"
+  die "The signature does not match $cert (expected $want, got ${got:-none}). Does $source_name belong to this certificate?"
+fi

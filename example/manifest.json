@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "date": "2026-11-20",
+  "sites": [
+    {
+      "id": "bbb",
+      "name": "Big Buck Bunny",
+      "url": "https://peach.blender.org/",
+      "description": "Der offene Animationsfilm der Blender Foundation.",
+      "category": "Filme",
+      "tags": ["CC BY 3.0"],
+      "banner": "img/bbb.png"
+    }
+  ],
+  "apps": [
+    {
+      "package": "org.xbmc.kodi",
+      "name": "Kodi",
+      "versionCode": 1,
+      "apk": "apks/kodi.apk",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size": 1
+    }
+  ]
+}

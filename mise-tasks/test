@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#MISE description="Run every test: app check, build-logic tests, the shell tests tests/*-test.sh: mise run test"
+# The step gate of the repo (AC8, AC10). Stops at the first red part and exits with its code.
+set -euo pipefail
+
+cd "${MISE_PROJECT_ROOT:-$(dirname "$0")/..}"
+
+# One command per line: set -e does not stop at a failed command on the left of && (tests/gate-test.sh).
+./gradlew --quiet check
+./gradlew --quiet -p build-logic test
+for test in tests/*-test.sh; do
+  bash "$test"
+done
