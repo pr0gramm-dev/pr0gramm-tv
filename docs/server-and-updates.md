@@ -102,12 +102,15 @@ This example layout serves the catalog of [`example/`](../example/README.md) at 
 /srv/tv/                  root of https://tv.example.org/
 ├── manifest.json         https://tv.example.org/manifest.json
 ├── img/
-│   └── bbb.png           "banner": "img/bbb.png"
+│   ├── bbb.jpg           "banner": "img/bbb.jpg"   (one banner for each site)
+│   └── jellyfin.jpg      "image": "img/jellyfin.jpg"
 └── apks/
     └── kodi.apk          "apk": "apks/kodi.apk"
 ```
 
-With the server address `example.org/tv`, the app loads `img/bbb.png` from `https://example.org/tv/img/bbb.png`.
+The APK of Jellyfin is not on this server: the manifest names it with an absolute URL on GitHub.
+
+With the server address `example.org/tv`, the app loads `img/bbb.jpg` from `https://example.org/tv/img/bbb.jpg`.
 
 ### Example: nginx and Caddy
 

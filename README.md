@@ -34,9 +34,10 @@ and installable apps from a catalog. You choose the server that hosts the catalo
 ## Features
 
 - Full-screen WebView for each site
-- Remote-control pointer and video fullscreen
+- Remote-control pointer and video in full screen
 - Settings for each site
 - A saved list ("Meine Liste")
+- Installs and updates Android apps from the catalog
 - Catalog on any static file server. A catalog change needs no app release.
 - Self-update from the GitHub Releases of this repo
 
@@ -48,23 +49,24 @@ mode. The app does not have these features yet. See [docs/roadmap.md](docs/roadm
 <table>
   <tr>
     <td><img src="docs/assets/screenshots/site-pointer.jpg" alt="A site in full screen with the remote-control pointer on a link"></td>
-    <td><img src="docs/assets/screenshots/settings.png" alt="The settings screen"></td>
+    <td><img src="docs/assets/screenshots/app-menu.png" alt="The menu of an app tile with the button Install"></td>
   </tr>
   <tr>
     <td align="center">A site with the pointer</td>
-    <td align="center">Settings</td>
+    <td align="center">Install an app from the catalog</td>
   </tr>
   <tr>
-    <td><img src="docs/assets/screenshots/server.png" alt="The server dialog with the TV keyboard"></td>
+    <td><img src="docs/assets/screenshots/settings.png" alt="The settings screen"></td>
     <td><img src="docs/assets/screenshots/remote-keys.png" alt="The help screen with the remote keys"></td>
   </tr>
   <tr>
-    <td align="center">Server dialog on the first start</td>
+    <td align="center">Settings</td>
     <td align="center">Remote keys</td>
   </tr>
 </table>
 
-The screenshots use a demo catalog with open movies of the Blender Foundation. The sources are in
+The screenshots show the example catalog in [`example/`](example/README.md): open movies of the Blender
+Foundation as sites, and Jellyfin, Moonlight and Kodi as apps. The sources of the images are in
 [docs/assets/screenshots/CREDITS.md](docs/assets/screenshots/CREDITS.md).
 
 ## Install
@@ -75,6 +77,10 @@ Requires Android TV 13 (API 33) or later.
 2. Install the APK on the TV. For example, run `adb install pr0gramm-tv.apk`.
 3. Start pr0gramm. Enter the address of your catalog in the server dialog.
 
+<p align="center">
+  <img src="docs/assets/screenshots/server.png" alt="The server dialog with the TV keyboard" width="560">
+</p>
+
 The app updates itself after this first install.
 
 ## Catalog and server
@@ -83,8 +89,41 @@ The app contains no server address. You enter the address on the first start.
 
 - The catalog is a file named `manifest.json` on a static file server.
 - The server needs no login.
-- The complete rules are in [docs/server-and-updates.md](docs/server-and-updates.md).
-- A complete example is in [`example/`](example/README.md).
+- A site opens a web page. An app is an Android APK that the app installs and updates.
+
+This manifest has one site and one app:
+
+```json
+{
+  "version": 1,
+  "date": "2026-11-23",
+  "sites": [
+    {
+      "id": "bbb",
+      "name": "Big Buck Bunny",
+      "url": "https://peach.blender.org/",
+      "category": "Open Movies",
+      "banner": "img/bbb.jpg"
+    }
+  ],
+  "apps": [
+    {
+      "package": "org.jellyfin.androidtv",
+      "name": "Jellyfin",
+      "image": "img/jellyfin.jpg",
+      "versionCode": 200099,
+      "apk": "https://github.com/jellyfin/jellyfin-androidtv/releases/download/v0.20.0/jellyfin-androidtv-v0.20.0-release.apk",
+      "sha256": "dfcc665195bed4ea087dca63df6f77497acc1185c4b15776b336d80eeaeb7fa6",
+      "size": 29945596
+    }
+  ]
+}
+```
+
+- Raise `version` with every change. The TV then loads the new catalog.
+- `banner` and `image` are a path relative to `manifest.json`, or an absolute http(s) URL.
+- The complete example with 8 sites and 3 apps is in [`example/`](example/README.md). It also describes every field.
+- The rules for the server are in [docs/server-and-updates.md](docs/server-and-updates.md).
 
 ## Documentation
 
@@ -105,4 +144,5 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before you open a pull request. To repor
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). The images in `example/img/` keep their own licenses, see
+[example/README.md](example/README.md#credits).
