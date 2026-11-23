@@ -5,14 +5,17 @@ import java.time.LocalDate
 /** The APK file with the [sha256] (64 lowercase hex digits) and [size] (> 0) it must have after the download. */
 data class Apk(val file: Resource, val sha256: String, val size: Long)
 
-/** An installable app. [pkg] is the Android package name, never [Manifest.OWN_PACKAGE]; [versionCode] > 0. */
-data class CatalogApp(val pkg: String, val name: String, val image: Resource?, val versionCode: Long, val apk: Apk)
+/**
+ * An installable app. [pkg] is the Android package name, never [Manifest.OWN_PACKAGE]; [versionCode] > 0. [banner] is
+ * the 16:9 picture of its tile, the same field as [Site.banner].
+ */
+data class CatalogApp(val pkg: String, val name: String, val banner: Resource?, val versionCode: Long, val apk: Apk)
 
 /** What the server offers. The launcher itself comes from GitHub releases, so [apps] never holds [OWN_PACKAGE]. */
 data class Manifest(val version: Int, val date: LocalDate, val sites: List<Site>, val apps: List<CatalogApp>) {
-    /** Banners and app images, without APKs: what the disk cache and the build copy. */
+    /** The banners of sites and apps, without APKs: what the disk cache and the build copy. */
     val images: Set<Resource>
-        get() = (sites.mapNotNull { it.banner } + apps.mapNotNull { it.image }).toSet()
+        get() = (sites.mapNotNull { it.banner } + apps.mapNotNull { it.banner }).toSet()
 
     companion object {
         /** The launcher's own package: the app's `BuildConfig.APPLICATION_ID`, which build-logic cannot see. */

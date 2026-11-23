@@ -111,7 +111,7 @@ The app ignores unknown fields. Each other error makes the whole manifest invali
 | `category` | no | | category, shown in the menu of the tile |
 | `tags` | no | `[]` | list of strings |
 | `color` | no | | background colour behind the banner, `#RRGGBB` |
-| `banner` | no | | image file, a relative path like `img/a.png` or an absolute URL |
+| `banner` | no | | the picture of the tile (see [Banners](#banners)) |
 | `cursor` | no | `true` | `true`: pointer mode, `false`: focus mode |
 | `desktopMode` | no | `false` | desktop layout |
 | `zoom` | no | `100` | page zoom in percent, 50 to 150 |
@@ -125,11 +125,22 @@ The app ignores unknown fields. Each other error makes the whole manifest invali
 |---|---|---|
 | `package` | yes | Android package name like `org.xbmc.kodi`, unique in `apps`. `dev.pr0gramm.tv` is not allowed: the app updates itself from GitHub Releases (self-update). |
 | `name` | yes | name on the tile |
-| `image` | no | image file, a relative path like `img/kodi.png` or an absolute URL |
+| `banner` | no | the picture of the tile (see [Banners](#banners)) |
 | `versionCode` | yes | `versionCode` of the APK, greater than 0 |
 | `apk` | yes | APK file, a relative path like `apks/kodi.apk` or an absolute URL like `https://github.com/o/r/releases/download/v1/a.apk` |
 | `sha256` | yes | SHA-256 of the APK, 64 hex digits in lowercase |
 | `size` | yes | size of the APK in bytes, greater than 0 |
+
+### Banners
+
+Every entry of the catalog that has a tile names its picture `banner`: a site, an app, and each later kind of
+entry, for example the entries of the planned ambient mode ([roadmap](../docs/roadmap.md)). Do not use a different
+field name for a picture.
+
+- A banner has the format 16:9, for example 640 × 360 px. The example banners have this size.
+- A banner is an image file: a relative path like `img/bbb.jpg`, or an absolute URL. It is at most 5 MiB.
+- Without a banner, the tile shows the name.
+- An app reads only `banner`. The app ignores an old field `image`.
 
 ### Relative paths and absolute URLs
 
@@ -168,7 +179,7 @@ the film title. The authors do not endorse these changes.
 | `img/llamigos.jpg` | Caminandes 3: Llamigos | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Blender_Foundation_-_Caminandes_-_Episode_3_-_Llamigos_-_Koro_and_Oti_share_more_food_to_eat_at_night.png) | Blender Foundation | CC BY 4.0 |
 | `img/spring.jpg` | Spring | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Blender_Open_Movie_-_Spring_%282019%29.png) | Alexandru.rosu | CC0 |
 
-The app images are the Android TV banners of the apps, scaled to 640 × 360 px:
+The banners of the apps are their Android TV banners, scaled to 640 × 360 px:
 
 | File | Source | License |
 |---|---|---|

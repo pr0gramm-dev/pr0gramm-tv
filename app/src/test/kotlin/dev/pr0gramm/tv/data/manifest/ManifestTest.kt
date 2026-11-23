@@ -84,7 +84,7 @@ class ManifestTest {
             "blocklist" to "false",
             "banner" to q("img/nova.png"),
         )
-        val kodi = app("org.kodi", "name" to q("Kodi"), "image" to q("img/kodi.png"), "versionCode" to "21000")
+        val kodi = app("org.kodi", "name" to q("Kodi"), "banner" to q("img/kodi.png"), "versionCode" to "21000")
         val m = valid(manifest(sites = listOf(nova), apps = listOf(kodi)))
 
         assertEquals(3, m.version)
@@ -124,11 +124,19 @@ class ManifestTest {
     @Test
     fun blankTextsAndNullsCountAsMissing() {
         val nova = site("nova", "description" to q(" "), "category" to "null", "banner" to "null", "color" to "null")
-        val m = valid(manifest(sites = listOf(nova), apps = listOf(app("org.kodi", "image" to "null"))))
+        val m = valid(manifest(sites = listOf(nova), apps = listOf(app("org.kodi", "banner" to "null"))))
         assertNull(m.sites.single().description)
         assertNull(m.sites.single().category)
         assertNull(m.sites.single().banner)
-        assertNull(m.apps.single().image)
+        assertNull(m.apps.single().banner)
+    }
+
+    /** The manifest names the picture of a site and of an app `banner`; the old app field `image` has no effect. */
+    @Test
+    fun anAppIgnoresTheOldFieldImage() {
+        val m = valid(manifest(apps = listOf(app("org.kodi", "image" to q("img/kodi.png")))))
+        assertNull(m.apps.single().banner)
+        assertEquals(emptySet<Resource>(), m.images)
     }
 
     @Test
@@ -148,7 +156,7 @@ class ManifestTest {
     @Test
     fun ignoresUnknownFieldsAndTypes() {
         val text = manifest(
-            "ambient" to """[{"type": "clock", "image": "https://elsewhere.example/x.png"}]""",
+            "ambient" to """[{"type": "clock", "banner": "https://elsewhere.example/x.png"}]""",
             "schema" to "2.5",
             sites = listOf(site("nova", "hidden" to "true", "title" to """{"x": [1, 2]}""")),
             apps = listOf(app("org.kodi", "minSdk" to "1.5")),
@@ -157,10 +165,13 @@ class ManifestTest {
     }
 
     @Test
-    fun imagesAreBannersAndAppImagesWithoutApks() {
+    fun imagesAreTheBannersOfSitesAndAppsWithoutApks() {
         val text = manifest(
             sites = listOf(site("a", "banner" to q("img/a.png")), site("b"), site("c", "banner" to q("img/both.png"))),
-            apps = listOf(app("org.kodi", "image" to q("img/kodi.png")), app("org.vlc", "image" to q("img/both.png"))),
+            apps = listOf(
+                app("org.kodi", "banner" to q("img/kodi.png")),
+                app("org.vlc", "banner" to q("img/both.png")),
+            ),
         )
         val expected = setOf("img/a.png", "img/both.png", "img/kodi.png").map(::resource).toSet()
         assertEquals(expected, valid(text).images)
@@ -258,7 +269,7 @@ class ManifestTest {
             cases("size", null, "0", "-1", "1.5", q("12"), tooBig),
             cases("versionCode", null, "0", "-3", "2.0", tooBig),
             cases("apk", null, q("https://user@tv.example.org/apks/x.apk"), q("/apks/x.apk")),
-            cases("image", q("https://tv.example.org/img/x.png#v2"), "true"),
+            cases("banner", q("https://tv.example.org/img/x.png#v2"), "true"),
         ).flatten()
         bad.forEach { assertInvalid(manifest(apps = listOf(app("org.kodi", it))), "apps[0] (org.kodi).${it.first}") }
     }

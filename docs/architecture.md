@@ -1186,7 +1186,7 @@ before each run. New measurements wait for the baseline profile (section 11).
 | `InstallJob`, `InstallOutcome` | One install (an app or the self-update) and how it ended: installed, failed or cancelled. |
 | `InstallEvent` | E1 and E3: `InstallEvent.Finished(job, outcome)`, the end of an install. |
 | `CatalogApp` | An app of the manifest. Never the app itself (`Manifest.OWN_PACKAGE`). |
-| `Resource` | A file that the manifest names (`banner`, `image`, `apk`): a `ServerPath` or an `AbsoluteUrl`. `Resource.resolve` gives the URL that the app loads. |
+| `Resource` | A file that the manifest names (`banner`, `apk`): a `ServerPath` or an `AbsoluteUrl`. `Resource.resolve` gives the URL that the app loads. |
 | `ServerPath` | The relative path of a file next to `manifest.json`, for example `img/kodi.png`. |
 | `AbsoluteUrl` | An http(s) URL with a host, without a user and a fragment, exactly as in the manifest, for example `https://github.com/o/r/releases/download/v1/a.apk`. The app caches its image as `url-<SHA-256 of the text>`. |
 | `CachedCatalog` | See Catalog. |

@@ -110,7 +110,7 @@ This manifest has one site and one app:
     {
       "package": "org.jellyfin.androidtv",
       "name": "Jellyfin",
-      "image": "img/jellyfin.jpg",
+      "banner": "img/jellyfin.jpg",
       "versionCode": 200099,
       "apk": "https://github.com/jellyfin/jellyfin-androidtv/releases/download/v0.20.0/jellyfin-androidtv-v0.20.0-release.apk",
       "sha256": "dfcc665195bed4ea087dca63df6f77497acc1185c4b15776b336d80eeaeb7fa6",
@@ -121,7 +121,8 @@ This manifest has one site and one app:
 ```
 
 - Raise `version` with every change. The TV then loads the new catalog.
-- `banner` and `image` are a path relative to `manifest.json`, or an absolute http(s) URL.
+- `banner` is the 16:9 picture of a tile, for sites and for apps. It is a path relative to `manifest.json`, or an
+  absolute http(s) URL.
 - The complete example with 8 sites and 3 apps is in [`example/`](example/README.md). It also describes every field.
 - The rules for the server are in [docs/server-and-updates.md](docs/server-and-updates.md).
 

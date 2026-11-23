@@ -40,7 +40,7 @@ internal fun TileFace(tile: Tile, onDrawn: () -> Unit) {
             Banner(model, tile.site.name, tile.site.color?.let(::Color) ?: Night.Surface1, onDrawn)
         }
         is Tile.App -> {
-            val model = tile.entry.image?.let(catalog::image)
+            val model = tile.entry.banner?.let(catalog::image)
             Banner(model, tile.entry.name, Night.Surface2, onDrawn)
             if (tile.state.dimmed) Box(Modifier.fillMaxSize().background(Night.Bg.copy(alpha = DIM)))
             AppBadge(tile.state)

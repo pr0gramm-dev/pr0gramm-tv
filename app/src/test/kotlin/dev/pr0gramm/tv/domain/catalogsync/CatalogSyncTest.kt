@@ -55,7 +55,7 @@ class CatalogSyncTest {
 
     private fun manifestText(version: Int, name: String = "Nova") = """{"version": $version, "date": "2026-11-18",
         "sites": [{"id": "nova", "name": "$name", "url": "https://nova.example/", "banner": "img/nova.png"}],
-        "apps": [{"package": "org.kodi", "name": "Kodi", "image": "img/kodi.png", "versionCode": 1,
+        "apps": [{"package": "org.kodi", "name": "Kodi", "banner": "img/kodi.png", "versionCode": 1,
                   "apk": "apks/kodi.apk", "sha256": "${"cd".repeat(32)}", "size": 10}]}"""
 
     private fun url(resource: ServerPath) = manifestUrl.resolve(resource.path)

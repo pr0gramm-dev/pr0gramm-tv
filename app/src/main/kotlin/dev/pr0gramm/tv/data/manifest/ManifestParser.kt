@@ -160,13 +160,13 @@ private class AppReader(private val f: Fields, private val packages: MutableSet<
     fun read(): CatalogApp? {
         val pkg = pkg()
         val name = f.text("name", required = true)
-        val image = f.resource("image")
+        val banner = f.resource("banner")
         val versionCode = f.positive("versionCode")
         val sha256 = sha256()
         val size = f.positive("size")
         // The placeholders for missing values never leave: each one has been recorded as a problem.
         val entry = f.resource("apk", required = true)?.let { file ->
-            CatalogApp(pkg.orEmpty(), name.orEmpty(), image, versionCode ?: 0, Apk(file, sha256.orEmpty(), size ?: 0))
+            CatalogApp(pkg.orEmpty(), name.orEmpty(), banner, versionCode ?: 0, Apk(file, sha256.orEmpty(), size ?: 0))
         }
         return entry.takeUnless { f.failed }
     }

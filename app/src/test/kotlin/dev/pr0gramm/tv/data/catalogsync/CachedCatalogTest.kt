@@ -54,7 +54,7 @@ class CachedCatalogTest {
     @Test fun `the same url in two entries is one image`() {
         val text = """{"version": 1, "date": "2026-11-18",
             "sites": [{"id": "nova", "name": "Nova", "url": "https://nova.example/", "banner": "https://cdn.x/a.png"}],
-            "apps": [{"package": "org.kodi", "name": "Kodi", "image": "https://cdn.x/a.png", "versionCode": 1,
+            "apps": [{"package": "org.kodi", "name": "Kodi", "banner": "https://cdn.x/a.png", "versionCode": 1,
             "apk": "kodi.apk", "sha256": "${"ab".repeat(32)}", "size": 10}]}"""
         val image = url("https://cdn.x/a.png")
         val catalog = stored(present = setOf(image), text = text)
