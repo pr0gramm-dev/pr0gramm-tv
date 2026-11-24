@@ -275,7 +275,7 @@ is an error. Every other `dev.pr0gramm.tv.<x>` without a known layer is an error
 | `dev.pr0gramm.tv.core.updatefailure` | The failure kinds of an update or a download. | `Failure`, `UpdateFailure` |
 | `dev.pr0gramm.tv.core.packageinstaller` | Adapter interface (`PackageInstallerPort`) and Android adapter of the package installer, `InstallReceiver`. | `PackageInstallerPort`, `AndroidPackageInstaller`, `InstallReceiver` |
 | `dev.pr0gramm.tv.core.useragent` | The Chrome-like user agent of the requests. | `siteUserAgent`, `IMAGE_ACCEPT` |
-| `dev.pr0gramm.tv.core.appversion` | The version `MAJOR.MINOR.PATCH` and its `versionCode` MAJOR·10 000 + MINOR·100 + PATCH (MINOR, PATCH ≤ 99). Pure Kotlin, also compiled into `build-logic`: the Gradle build and the app use the same rule. | `AppVersion` |
+| `dev.pr0gramm.tv.core.appversion` | The version `MAJOR.MINOR.PATCH` or `MAJOR.MINOR.PATCH-nightly.N` and its `versionCode` (MAJOR·10 000 + MINOR·100 + PATCH)·1000 + N (MINOR, PATCH ≤ 99; N 1 to 999, 0 for a stable version). Pure Kotlin, also compiled into `build-logic`: the Gradle build and the app use the same rule. | `AppVersion` |
 | `dev.pr0gramm.tv.core.text` | The text value `UiText` of every text for the user: a string resource with args, a plain text or a date. Pure code returns a `UiText`; a composable resolves it with `asString`. `resolve` reads `format_locale` for every text; `AppContainer` reads it for `Accept-Language` (AC16). | `UiText`, `text`, `resolve`, `asString` |
 
 ### Domain events
@@ -656,7 +656,7 @@ sequenceDiagram
 2. `GithubReleases.latest` reads `https://api.github.com/repos/<UPDATE_REPO>/releases/latest` without a token.
    `BuildConfig.UPDATE_REPO` comes from `-PupdateRepo`, default `pr0gramm-dev/pr0gramm-tv`.
 3. `AppVersion.parse` reads the tag `vMAJOR.MINOR.PATCH` (MINOR and PATCH at most 99). The `versionCode` is
-   MAJOR·10 000 + MINOR·100 + PATCH. A tag of another form gives no release, and the status is `UpToDate`.
+   (MAJOR·10 000 + MINOR·100 + PATCH)·1000 ([release.md](release.md#version-code)). A tag of another form gives no release, and the status is `UpToDate`.
 4. A release without the asset `pr0gramm-tv.apk`, or an asset without `digest`, gives `Failed(BAD_INDEX)`. No
    answer, or an HTTP error such as the rate limit (60 requests per hour and IP address), gives
    `Failed(UNREACHABLE)`.
@@ -890,7 +890,7 @@ starts no workflow; a `workflow_dispatch` does. The tag release runs one release
     form `vMAJOR.MINOR.PATCH` (MINOR and PATCH at most 99). It must be greater than every other SemVer tag. The
     tagged commit must be on `origin/main`. It also stops when `HEAD` is not the tagged commit.
   - It downloads the blocklist from `BLOCKLIST_URL` and builds the APK with `-PappVersion=MAJOR.MINOR.PATCH`:
-    `versionName` = `MAJOR.MINOR.PATCH`, `versionCode` = MAJOR·10 000 + MINOR·100 + PATCH (`AppVersion`). `sign`
+    `versionName` = `MAJOR.MINOR.PATCH`, `versionCode` = (MAJOR·10 000 + MINOR·100 + PATCH)·1000 (`AppVersion`). `sign`
     signs it as `app/build/outputs/apk/release/pr0gramm-tv.apk`.
   - It writes no manifest and no `apks/` folder, and it checks no registry. The job uploads the APK as the artifact `apk`.
 - `release` (`contents: write`, no checkout) publishes the GitHub Release of the tag in `$GITHUB_REPOSITORY` with

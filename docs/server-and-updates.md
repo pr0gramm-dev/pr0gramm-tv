@@ -171,8 +171,9 @@ The app reads `https://api.github.com/repos/pr0gramm-dev/pr0gramm-tv/releases/la
 self-update works without a server address. A failure of the catalog does not stop the self-update. A failure of the
 self-update does not stop the catalog.
 
-- The tag `vMAJOR.MINOR.PATCH` of the release gives the `versionCode` MAJOR·10 000 + MINOR·100 + PATCH. MINOR and
-  PATCH are at most 99. The app ignores a release with a different tag form.
+- The tag `vMAJOR.MINOR.PATCH` of the release gives the `versionCode` (MAJOR·10 000 + MINOR·100 + PATCH)·1000. MINOR
+  and PATCH are at most 99 ([Version code](release.md#version-code)). The app ignores a release with a different tag
+  form.
 - When the `versionCode` is greater than the installed one, the app downloads the asset `pr0gramm-tv.apk`.
 - The app compares the size and the SHA-256 of the APK with `size` and `digest` from the GitHub API.
 - The download follows https redirects only to `github.com` and `*.githubusercontent.com`.

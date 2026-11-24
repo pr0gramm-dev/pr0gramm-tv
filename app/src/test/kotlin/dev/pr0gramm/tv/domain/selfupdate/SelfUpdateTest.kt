@@ -62,7 +62,7 @@ class SelfUpdateTest {
 
     private class FakeDevice : PackageInstallerPort {
         override val packageName = "dev.pr0gramm.tv.app"
-        override val versionCode = 5L
+        override val versionCode = 5_000L // 0.0.5
         override var updatable = true
         override var mayInstall = true
 
@@ -113,7 +113,7 @@ class SelfUpdateTest {
         val s = setup()
         assertEquals(UpdateStatus.Ready, checked(s))
         val ready = s.updates.events.first()
-        assertEquals(6L, ready.versionCode)
+        assertEquals(6_000L, ready.versionCode)
         assertEquals(apk.toList(), ready.apk.readBytes().toList())
     }
 
@@ -196,7 +196,7 @@ class SelfUpdateTest {
     fun `a version that failed to install is skipped by every check until a newer one appears`() = runTest {
         val s = setup()
         checked(s)
-        s.updates.installEnded(6, failed = true)
+        s.updates.installEnded(6_000, failed = true)
         assertEquals(UpdateStatus.Failed(Failure.INSTALL_FAILED), checked(s, force = true))
         assertEquals(1, s.downloads())
 
@@ -211,7 +211,7 @@ class SelfUpdateTest {
         val file = File(tmp.root, "self-update-failed")
         val s = setup(failedFile = file)
         checked(s)
-        s.updates.installEnded(6, failed = true)
+        s.updates.installEnded(6_000, failed = true)
         s.updates.retry()
         s.updates.checking.first { !it }
         assertEquals(UpdateStatus.Ready, s.updates.status.value)
@@ -224,8 +224,8 @@ class SelfUpdateTest {
         val file = File(tmp.root, "self-update-failed")
         val first = setup(failedFile = file)
         checked(first)
-        first.updates.installEnded(6, failed = true)
-        assertEquals("6", file.readText())
+        first.updates.installEnded(6_000, failed = true)
+        assertEquals("6000", file.readText())
 
         val restarted = setup(failedFile = file)
         assertEquals(UpdateStatus.Failed(Failure.INSTALL_FAILED), checked(restarted))
@@ -234,9 +234,9 @@ class SelfUpdateTest {
 
     @Test
     fun `a successful install clears the mark`() = runTest {
-        val file = File(tmp.root, "self-update-failed").apply { writeText("6") }
+        val file = File(tmp.root, "self-update-failed").apply { writeText("6000") }
         val s = setup(failedFile = file)
-        s.updates.installEnded(6, failed = false)
+        s.updates.installEnded(6_000, failed = false)
         assertEquals(false, file.exists())
     }
 

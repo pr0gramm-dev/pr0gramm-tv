@@ -12,10 +12,13 @@ plugins {
 // so Gradle never sees the key. Without it the release build is signed with the debug key and warns (AC9a).
 val releaseSigned: Boolean = providers.gradleProperty("releaseSigned").orNull.toBoolean()
 
-// -PappVersion=MAJOR.MINOR.PATCH (AC10): the release tag vMAJOR.MINOR.PATCH, default 0.0.1. AppVersion (core.appversion,
-// compiled into build-logic) gives versionCode and versionName, with the same rule the self-update uses.
+// -PappVersion=MAJOR.MINOR.PATCH (AC10): the release tag vMAJOR.MINOR.PATCH, or MAJOR.MINOR.PATCH-nightly.N for a
+// nightly build; default 0.0.1. AppVersion (core.appversion, compiled into build-logic) gives versionCode and
+// versionName, with the same rule the self-update uses (docs/release.md, "Version code").
 val appVersion: AppVersion = AppVersion.parse(providers.gradleProperty("appVersion").getOrElse("0.0.1"))
-    ?: throw GradleException("-PappVersion muss MAJOR.MINOR.PATCH sein (MINOR, PATCH ≤ 99)")
+    ?: throw GradleException(
+        "-PappVersion must be MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH-nightly.N (MINOR, PATCH ≤ 99; N 1 to 999)",
+    )
 
 // Self-update (AC6): -PupdateRepo=owner/repo names the GitHub repo whose latest release the app reads, default
 // pr0gramm-dev/pr0gramm-tv. A release build gets the repo of its workflow (mise-tasks/stage). UpdateRepo

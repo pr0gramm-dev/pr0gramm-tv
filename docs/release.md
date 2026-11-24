@@ -8,12 +8,36 @@ key is.
 A release is a git tag `vMAJOR.MINOR.PATCH`, for example `v0.1.0`. MINOR and PATCH are at most 99. The owner's
 machine builds no release.
 
-The tag gives the version of the app:
+The tag gives the version of the app. For example, the tag `v1.2.3` gives the `versionName` `1.2.3` and the
+`versionCode` 10 203 000 (see [Version code](#version-code)).
 
-- `versionName` = `MAJOR.MINOR.PATCH`
-- `versionCode` = MAJOR·10 000 + MINOR·100 + PATCH
+### Version code
 
-For example, the tag `v1.2.3` gives the `versionName` `1.2.3` and the `versionCode` 10203.
+Android installs an update only when its `versionCode` is greater than the installed one. `AppVersion`
+(`core/appversion`) computes the `versionCode` for the build and for the self-update. `mise-tasks/version` checks the
+same range for a tag.
+
+- The base is MAJOR·10 000 + MINOR·100 + PATCH. MINOR and PATCH are at most 99.
+- A stable version `vMAJOR.MINOR.PATCH` has the `versionCode` base × 1000.
+- A nightly build has the `versionName` `MAJOR.MINOR.PATCH-nightly.N`. MAJOR.MINOR.PATCH is the last stable version,
+  and N (1 to 999) counts the commits on `main` since that version. The `versionCode` is base × 1000 + N.
+
+Thus each nightly is above its stable version and below the next stable version. The next stable version replaces
+a nightly build.
+
+| Build | `versionName` | `versionCode` |
+|---|---|---|
+| Nightly, 5 commits, before the first release | `0.0.0-nightly.5` | 5 |
+| `v0.1.0` | `0.1.0` | 100 000 |
+| Nightly, 17 commits after v0.1.0 | `0.1.0-nightly.17` | 100 017 |
+| `v0.1.1` | `0.1.1` | 101 000 |
+| `v0.2.0` | `0.2.0` | 200 000 |
+| `v1.2.3` | `1.2.3` | 10 203 000 |
+| Nightly, 42 commits after v1.2.3 | `1.2.3-nightly.42` | 10 203 042 |
+| The highest version, `v210.0.0` | `210.0.0` | 2 100 000 000 |
+
+Android accepts a `versionCode` up to 2 100 000 000. Thus `v210.0.0` is the highest stable version, and a stable
+version gets at most 999 nightly builds.
 
 ### With the release PR (normal way)
 
