@@ -40,15 +40,15 @@ check_rejects() {
   fi
 }
 
-# (a) highest without any tag: 0.0.1 (versionCode 1).
+# (a) highest without any tag: 0.0.1 (versionCode 1000).
 setup
 accepts "(a)" highest
 check "(a) highest without tag is 0.0.1, got $(out)" [ "$(out)" = 0.0.1 ]
 
 # (b) highest takes the version with the highest versionCode; tags that AppVersion rejects do not count:
-# v1, v01.2.3, v1.02.3, v1.2.100, v1.2.3x, 1.9.9 (no v), v0.0.0 (code 0), v210001.0.0 (code above 2100000000).
+# v1, v01.2.3, v1.02.3, v1.2.100, v1.2.3x, 1.9.9 (no v), v0.0.0 (code 0), v211.0.0 (code above 2100000000).
 setup
-for t in v0.1.0 v0.10.0 v0.9.99 v1 v01.2.3 v1.02.3 v1.2.100 v1.2.3x 1.9.9 v0.0.0 v210001.0.0; do git_root tag "$t"; done
+for t in v0.1.0 v0.10.0 v0.9.99 v1 v01.2.3 v1.02.3 v1.2.100 v1.2.3x 1.9.9 v0.0.0 v211.0.0; do git_root tag "$t"; done
 accepts "(b)" highest
 check "(b) highest is 0.10.0, got $(out)" [ "$(out)" = 0.10.0 ]
 git_root tag v2.0.0
@@ -72,15 +72,16 @@ for t in 1.2.3 v1 v1.2 v1.2.3.4 v01.2.3 v1.02.3 v1.2.03 v1.100.0 v1.2.100 V1.2.3
 done
 check_rejects "(d) empty tag" "vMAJOR.MINOR.PATCH" ""
 
-# (e) the versionCode must be 1 to 2100000000; v210000.0.0 is exactly the upper limit.
+# (e) the versionCode (MAJOR*10000 + MINOR*100 + PATCH) * 1000 must be 1000 to 2100000000; v210.0.0 is exactly the
+# upper limit.
 setup
-for t in v0.0.0 v210000.0.1 v9999999.0.0; do
+for t in v0.0.0 v210.0.1 v211.0.0 v9999999.0.0; do
   git_root tag "$t"
   check_rejects "(e) range $t" 2100000000 "$t"
 done
 setup
-git_root tag v210000.0.0
-accepts "(e) upper bound" check v210000.0.0
+git_root tag v210.0.0
+accepts "(e) upper bound" check v210.0.0
 
 # (f) the tag must be greater than every other SemVer tag, compared by versionCode, not as text.
 setup
