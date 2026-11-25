@@ -56,8 +56,8 @@ Before 1.0.0, a breaking change raises MINOR, not MAJOR (`bump-minor-pre-major` 
 To make a release:
 
 1. Merge pull requests into `main`. After each push to `main`, `.github/workflows/release-please.yml` updates one
-   pull request "chore(main): release X.Y.Z". The pull request contains the next version, `CHANGELOG.md` and
-   `version.txt`.
+   pull request "chore(main): release X.Y.Z". The pull request changes `CHANGELOG.md` and
+   `.release-please-manifest.json` (the version of the last release).
 2. Read the changelog in the release PR. release-please writes the pull request again after each push to `main`.
 3. Merge the release PR. Then the workflows do these steps:
    1. release-please creates the tag `vX.Y.Z` and a draft release with the notes of the changelog.
@@ -68,10 +68,14 @@ The TVs see the release only after step 3, because a draft release is not the la
 
 Notes:
 
-- `version.txt` holds the version of the last release. release-please writes it. The build does not read it: the
-  version comes only from the tag.
-- A release PR of release-please starts no CI run, because `GITHUB_TOKEN` creates it. The release PR changes only
-  `CHANGELOG.md`, `version.txt` and `.release-please-manifest.json`.
+- The build does not read `.release-please-manifest.json`: the version comes only from the tag.
+- The first release is `0.1.0` (`initial-version` in `release-please-config.json`). Without this value,
+  release-please makes the first release `1.0.0`.
+- The release PR changes no code. GitHub holds its CI run until a maintainer approves the run ("action required"),
+  because the GitHub Actions bot opens the pull request.
+- Every commit on `main` is a squash merge of one pull request, with the title of the pull request as the commit
+  message. Thus each pull request gives at most one changelog entry. A merge commit would give the entry twice: once
+  for the commit and once for the merge commit, which repeats the title of the pull request.
 
 ### With a tag by hand
 

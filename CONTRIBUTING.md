@@ -28,6 +28,8 @@ mise exec -- ./gradlew installDebug
   `type: short summary`. The type sets the next version (see [Make a release](docs/release.md#make-a-release)).
   For example
   `fix: keep last valid catalog`.
+- Give the pull request a title in the form of Conventional Commits, for example `feat: watched list`. The
+  maintainers squash-merge each pull request; its title becomes the commit message on `main` and the changelog entry.
 - Fill in [the pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 - Put one change in each pull request.
 

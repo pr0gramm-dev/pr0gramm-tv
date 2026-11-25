@@ -135,6 +135,8 @@ else fail "(release-please.yml) dispatch exited non-zero: $(cat "$work/wf/out.lo
 
 # The release-please config: tags vX.Y.Z, draft releases with their tag at once, breaking changes before 1.0 are minor.
 cfg=$repo/release-please-config.json
+check "(release-please config) the first release is 0.1.0, not the default 1.0.0" \
+  jq -e '."initial-version" == "0.1.0"' "$cfg"
 check "(release-please config) simple, tag vX.Y.Z, draft with tag, minor bump before 1.0" jq -e '
   ."release-type" == "simple" and ."include-component-in-tag" == false and .draft == true and
   ."force-tag-creation" == true and ."bump-minor-pre-major" == true and (.packages | keys) == ["."]' "$cfg"

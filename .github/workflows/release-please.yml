@@ -1,5 +1,5 @@
 # Release PR (docs/release.md): every push to main updates one release PR. release-please reads the Conventional
-# Commits since the last release and writes the next version, CHANGELOG.md and version.txt into that PR.
+# Commits since the last release and writes the next version and CHANGELOG.md into that PR.
 # The merge of the release PR creates the tag vMAJOR.MINOR.PATCH and a draft release with the notes of the changelog
 # (release-please-config.json: draft, force-tag-creation). Then the job dispatch starts release.yml on the tag: a tag
 # of GITHUB_TOKEN starts no workflow, a workflow_dispatch does. release.yml builds the APK, adds it to the draft and
