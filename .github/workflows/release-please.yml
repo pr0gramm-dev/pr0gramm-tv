@@ -1,0 +1,58 @@
+# Release PR (docs/release.md): every push to main updates one release PR. release-please reads the Conventional
+# Commits since the last release and writes the next version, CHANGELOG.md and version.txt into that PR.
+# The merge of the release PR creates the tag vMAJOR.MINOR.PATCH and a draft release with the notes of the changelog
+# (release-please-config.json: draft, force-tag-creation). Then the job dispatch starts release.yml on the tag: a tag
+# of GITHUB_TOKEN starts no workflow, a workflow_dispatch does. release.yml builds the APK, adds it to the draft and
+# publishes the release.
+# The repo setting "Allow GitHub Actions to create and approve pull requests" must be on.
+# tests/ci-test.sh checks this file and runs the script of the step "Start the release build" with a gh stub.
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+# One run at a time; a running run is never cancelled.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+permissions: {}
+
+# Every run script uses bash -eo pipefail.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # No checkout: release-please reads and writes the repo through the GitHub API.
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  dispatch:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Start the release build
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG"

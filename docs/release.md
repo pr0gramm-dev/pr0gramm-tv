@@ -5,37 +5,96 @@ key is.
 
 ## Make a release
 
-A release is a git tag `vMAJOR.MINOR.PATCH`, for example `v0.1.0`. MINOR and PATCH are at most 99. The Mac of the
-owner builds no release.
+A release is a git tag `vMAJOR.MINOR.PATCH`, for example `v0.1.0`. MINOR and PATCH are at most 99. The owner's
+machine builds no release.
 
-The tag gives the version of the app:
+The tag gives the version of the app. For example, the tag `v1.2.3` gives the `versionName` `1.2.3` and the
+`versionCode` 10 203 000 (see [Version code](#version-code)).
 
-- `versionName` = `MAJOR.MINOR.PATCH`
-- `versionCode` = MAJOR·10 000 + MINOR·100 + PATCH
+### Version code
 
-For example, the tag `v1.2.3` gives the `versionName` `1.2.3` and the `versionCode` 10203.
+Android installs an update only when its `versionCode` is greater than the installed one. `AppVersion`
+(`core/appversion`) computes the `versionCode` for the build and for the self-update. `mise-tasks/version` checks the
+same range for a tag.
+
+- The base is MAJOR·10 000 + MINOR·100 + PATCH. MINOR and PATCH are at most 99.
+- A stable version `vMAJOR.MINOR.PATCH` has the `versionCode` base × 1000.
+- A nightly build has the `versionName` `MAJOR.MINOR.PATCH-nightly.N`. MAJOR.MINOR.PATCH is the last stable version,
+  and N (1 to 999) counts the commits on `main` since that version. The `versionCode` is base × 1000 + N.
+
+Thus each nightly is above its stable version and below the next stable version. The next stable version replaces
+a nightly build.
+
+| Build | `versionName` | `versionCode` |
+|---|---|---|
+| Nightly, 5 commits, before the first release | `0.0.0-nightly.5` | 5 |
+| `v0.1.0` | `0.1.0` | 100 000 |
+| Nightly, 17 commits after v0.1.0 | `0.1.0-nightly.17` | 100 017 |
+| `v0.1.1` | `0.1.1` | 101 000 |
+| `v0.2.0` | `0.2.0` | 200 000 |
+| `v1.2.3` | `1.2.3` | 10 203 000 |
+| Nightly, 42 commits after v1.2.3 | `1.2.3-nightly.42` | 10 203 042 |
+| The highest version, `v210.0.0` | `210.0.0` | 2 100 000 000 |
+
+Android accepts a `versionCode` up to 2 100 000 000. Thus `v210.0.0` is the highest stable version, and a stable
+version gets at most 999 nightly builds.
+
+### With the release PR (normal way)
+
+[release-please](https://github.com/googleapis/release-please) finds the next version from the commit messages on
+`main`. Every commit message has the form of [Conventional Commits](https://www.conventionalcommits.org):
+
+| Commit message | Next version from 0.4.2 | Next version from 1.4.2 |
+|---|---|---|
+| `fix: …` | 0.4.3 | 1.4.3 |
+| `feat: …` | 0.5.0 | 1.5.0 |
+| `feat!: …` or a footer `BREAKING CHANGE: …` | 0.5.0 | 2.0.0 |
+| `docs: …`, `chore: …`, `test: …`, `refactor: …` | no release | no release |
+
+Before 1.0.0, a breaking change raises MINOR, not MAJOR (`bump-minor-pre-major` in `release-please-config.json`).
 
 To make a release:
 
+1. Merge pull requests into `main`. After each push to `main`, `.github/workflows/release-please.yml` updates one
+   pull request "chore(main): release X.Y.Z". The pull request contains the next version, `CHANGELOG.md` and
+   `version.txt`.
+2. Read the changelog in the release PR. release-please writes the pull request again after each push to `main`.
+3. Merge the release PR. Then the workflows do these steps:
+   1. release-please creates the tag `vX.Y.Z` and a draft release with the notes of the changelog.
+   2. The job `dispatch` starts `.github/workflows/release.yml` on the tag.
+   3. `release.yml` builds and signs the APK, adds it to the draft release and publishes the release.
+
+The TVs see the release only after step 3, because a draft release is not the latest release.
+
+Notes:
+
+- `version.txt` holds the version of the last release. release-please writes it. The build does not read it: the
+  version comes only from the tag.
+- A release PR of release-please starts no CI run, because `GITHUB_TOKEN` creates it. The release PR changes only
+  `CHANGELOG.md`, `version.txt` and `.release-please-manifest.json`.
+
+### With a tag by hand
+
+You can also push a tag yourself. Then `release.yml` creates the release with the fixed note "Signed app version X"
+and without a changelog.
+
 1. Select a commit on `main`.
-2. Make the tag on that commit:
+2. Make the tag on that commit and push it:
 
    ```sh
    git tag v0.1.0
-   ```
-
-3. Push the tag:
-
-   ```sh
    git push origin v0.1.0
    ```
 
+Make each version in one way only: with the release PR, or with a tag by hand.
+
 ## The workflow
 
-The push of the tag starts `.github/workflows/release.yml`. The workflow runs one release at a time. It has two
-jobs:
+A tag `v*` starts `.github/workflows/release.yml`: the push of the tag, or the dispatch of `release-please.yml` on
+the tag. The workflow runs one release at a time. It has two jobs:
 
-1. `build` (`contents: read`, environment `release`) runs `mise-tasks/stage <tag>`. `stage` does these steps:
+1. `build` (`contents: read`, environment `release`) runs only for a tag. It runs `mise-tasks/stage <tag>`. `stage`
+   does these steps:
    - Before Gradle, `stage` runs `mise run version check <tag>`. `stage` stops when this check refuses the tag. The
      tag must have the form `vMAJOR.MINOR.PATCH`. It must be greater than every other SemVer tag. Its commit must be
      on `origin/main`.
@@ -44,8 +103,11 @@ jobs:
    - `stage` builds the APK with the version of the tag. The self-update repo of the APK is `$GITHUB_REPOSITORY`.
    - `stage` signs the APK as `pr0gramm-tv.apk`.
    - The job uploads the APK as the artifact `apk`.
-2. `release` (`contents: write`, no checkout) creates the GitHub Release `<tag>` in this repo
-   (`$GITHUB_REPOSITORY`). The release has exactly one asset, `pr0gramm-tv.apk`.
+2. `release` (`contents: write`, no checkout) publishes the GitHub Release `<tag>` in this repo
+   (`$GITHUB_REPOSITORY`) with exactly one asset, `pr0gramm-tv.apk`:
+   - When a release of the tag exists (the draft of release-please), the job uploads the APK and publishes the
+     release as the latest release.
+   - Otherwise the job creates the release.
 
 The workflow commits nothing and pushes no image. When only the job `release` fails, "Re-run failed jobs" repeats
 the job with the APK of the same build.
@@ -62,6 +124,7 @@ The owner sets up these values one time, in the repo settings on GitHub:
 | `release` | Environment | "Deployment branches and tags": Selected, one tag rule `v*` |
 | `RELEASE_SIGNING_KEY` | Environment secret in `release` | the release key, the same base64 PKCS#8 line as in your secret store (see [Release key](#release-key)) |
 | `BLOCKLIST_URL` | Repository variable | the http(s) URL of the blocklist (see [Ads](features.md#ads)) |
+| "Allow GitHub Actions to create and approve pull requests" | Setting under Actions > General | on: release-please opens the release PR |
 
 The job `build` runs in the environment `release`. Only that job gets the release key, and only for a tag `v*`.
 

@@ -1,5 +1,9 @@
-# Tag release (AC11): a push of a tag vMAJOR.MINOR.PATCH builds and signs the app and creates the GitHub Release
-# with that tag in this repo ($GITHUB_REPOSITORY). The release has exactly one asset, pr0gramm-tv.apk.
+# Tag release (AC11): a tag vMAJOR.MINOR.PATCH builds and signs the app and publishes the GitHub Release with that tag
+# in this repo ($GITHUB_REPOSITORY). The release has exactly one asset, pr0gramm-tv.apk.
+# Two ways start it (docs/release.md):
+#   - release-please.yml: the merge of a release PR creates the tag and a draft release, then dispatches this
+#     workflow on the tag. A tag of GITHUB_TOKEN starts no workflow, a dispatch does.
+#   - a tag that the owner pushes by hand.
 # Two jobs, each with its own permissions: build (contents: read) and release (contents: write).
 # The runner changes no file in the repo: no commit, no push to a branch.
 # The owner sets up: the environment release (deployment tags v* only) with the secret RELEASE_SIGNING_KEY
@@ -11,6 +15,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 # One release at a time; a running release is never cancelled.
 concurrency:
@@ -26,6 +31,8 @@ defaults:
 
 jobs:
   build:
+    # A dispatch on a branch builds nothing: the environment release admits only tags v*, and so does this job.
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     # The signing key is an environment secret: only a job in the environment release sees it, and the environment
     # admits only tags v*. A workflow on another branch cannot read the key.
@@ -70,7 +77,8 @@ jobs:
           if-no-files-found: error
 
   # The only job with contents: write. It has no checkout and runs no code from the repo.
-  # --verify-tag: gh creates no tag; the release needs the pushed tag.
+  # A draft release of the tag (from release-please) gets the APK and then becomes the latest release: the TVs see the
+  # release only with its APK. Without a release, gh creates it; --verify-tag: gh creates no tag.
   # When only this job fails, "Re-run failed jobs" repeats it with the APK of the same build.
   release:
     needs: build
@@ -88,5 +96,10 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" apk/pr0gramm-tv.apk --repo "$GITHUB_REPOSITORY" --verify-tag \
-            --title "$GITHUB_REF_NAME" --notes "Signed app version $VERSION."
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null; then
+            gh release upload "$GITHUB_REF_NAME" apk/pr0gramm-tv.apk --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          else
+            gh release create "$GITHUB_REF_NAME" apk/pr0gramm-tv.apk --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "$GITHUB_REF_NAME" --notes "Signed app version $VERSION."
+          fi

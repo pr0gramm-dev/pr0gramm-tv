@@ -87,7 +87,7 @@ dashed: outside
 | User | Remote control: arrows, OK, hold OK (600 ms), Back and the Gear key. In the browser, Back held for 600 ms closes the browser at once (`KeyRouter`). |
 | Owner | Pushes a git tag `vMAJOR.MINOR.PATCH`, which starts the release. `mise run deploy` installs the app over adb. |
 | Operator | Puts `manifest.json` and the files it names on a static file server (`example/README.md` has the format). `mise run check-manifest <file> [--apks]` checks a manifest with the parser of the app. |
-| GitHub Actions | `.github/workflows/release.yml` runs on every push of a tag `v*`, one run at a time. It builds and signs the APK and creates the GitHub Release of the tag with the one asset `pr0gramm-tv.apk` (section 7). `.github/workflows/ci.yml` runs `mise run test` on every push and every pull request. |
+| GitHub Actions | `.github/workflows/release-please.yml` keeps a release PR on `main`; its merge creates the tag and a draft release. `.github/workflows/release.yml` runs for a tag `v*`, one run at a time. It builds and signs the APK and publishes the GitHub Release of the tag with the one asset `pr0gramm-tv.apk` (section 7). `.github/workflows/ci.yml` runs `mise run test` on every push and every pull request. |
 | GitHub Releases | The app sends `GET https://api.github.com/repos/<UPDATE_REPO>/releases/latest` without a token (`GithubReleases`). `BuildConfig.UPDATE_REPO` comes from `-PupdateRepo`, default `pr0gramm-dev/pr0gramm-tv`. The download of `pr0gramm-tv.apk` follows https redirects only to `github.com` and `*.githubusercontent.com`, at most 5 (`Http.follow`). `SelfUpdateCheck` asks at most once per hour; "Nach Updates suchen" asks at once. Without a token GitHub allows 60 requests per hour and IP address. |
 | Static file server | The app sends `GET` for `<server address>/manifest.json`. It also sends `GET` for the images and APKs that the manifest names. It resolves a relative path relative to the manifest, and it uses an absolute http(s) URL as it is. Every build accepts an http or https server address. The app checks no origin. It sends no token and follows at most 5 redirects to any http or https target (`Http.follow`). It reads the manifest up to 2 MiB and an image up to 5 MiB. `CatalogSync` asks at most once per hour. A check that the user starts asks at once. |
 | Websites | The system WebView loads the pages of a site, with zoom, user agent and blocklist from the app. Requests look like Chrome on Android, or like desktop Chrome on Linux when the site uses the desktop layout (`UserAgent.kt`). `CoverDownloader` loads the cover image of a saved page with the Chrome user agent for Android (`CoverSource.kt`). |
@@ -275,7 +275,7 @@ is an error. Every other `dev.pr0gramm.tv.<x>` without a known layer is an error
 | `dev.pr0gramm.tv.core.updatefailure` | The failure kinds of an update or a download. | `Failure`, `UpdateFailure` |
 | `dev.pr0gramm.tv.core.packageinstaller` | Adapter interface (`PackageInstallerPort`) and Android adapter of the package installer, `InstallReceiver`. | `PackageInstallerPort`, `AndroidPackageInstaller`, `InstallReceiver` |
 | `dev.pr0gramm.tv.core.useragent` | The Chrome-like user agent of the requests. | `siteUserAgent`, `IMAGE_ACCEPT` |
-| `dev.pr0gramm.tv.core.appversion` | The version `MAJOR.MINOR.PATCH` and its `versionCode` MAJOR·10 000 + MINOR·100 + PATCH (MINOR, PATCH ≤ 99). Pure Kotlin, also compiled into `build-logic`: the Gradle build and the app use the same rule. | `AppVersion` |
+| `dev.pr0gramm.tv.core.appversion` | The version `MAJOR.MINOR.PATCH` or `MAJOR.MINOR.PATCH-nightly.N` and its `versionCode` (MAJOR·10 000 + MINOR·100 + PATCH)·1000 + N (MINOR, PATCH ≤ 99; N 1 to 999, 0 for a stable version). Pure Kotlin, also compiled into `build-logic`: the Gradle build and the app use the same rule. | `AppVersion` |
 | `dev.pr0gramm.tv.core.text` | The text value `UiText` of every text for the user: a string resource with args, a plain text or a date. Pure code returns a `UiText`; a composable resolves it with `asString`. `resolve` reads `format_locale` for every text; `AppContainer` reads it for `Accept-Language` (AC16). | `UiText`, `text`, `resolve`, `asString` |
 
 ### Domain events
@@ -656,7 +656,7 @@ sequenceDiagram
 2. `GithubReleases.latest` reads `https://api.github.com/repos/<UPDATE_REPO>/releases/latest` without a token.
    `BuildConfig.UPDATE_REPO` comes from `-PupdateRepo`, default `pr0gramm-dev/pr0gramm-tv`.
 3. `AppVersion.parse` reads the tag `vMAJOR.MINOR.PATCH` (MINOR and PATCH at most 99). The `versionCode` is
-   MAJOR·10 000 + MINOR·100 + PATCH. A tag of another form gives no release, and the status is `UpToDate`.
+   (MAJOR·10 000 + MINOR·100 + PATCH)·1000 ([release.md](release.md#version-code)). A tag of another form gives no release, and the status is `UpToDate`.
 4. A release without the asset `pr0gramm-tv.apk`, or an asset without `digest`, gives `Failed(BAD_INDEX)`. No
    answer, or an HTTP error such as the rate limit (60 requests per hour and IP address), gives
    `Failed(UNREACHABLE)`.
@@ -878,22 +878,24 @@ dashed: outside
 |---|---|
 | TV | The APK `dev.pr0gramm.tv`, label "pr0gramm". Under the app's `filesDir`, `server-address` holds the saved server address. `datastore/app-settings.preferences_pb` holds the pointer look. `self-update-failed` holds the failed self-update. `servers/<key>/` holds one folder per server (`servers/none` without a server address). `android:allowBackup="false"`: Android makes no backup of the data. |
 | Static file server | `manifest.json` and the files it names with a relative path, relative to it, over http or https. Any server that answers `GET` with status 200. `example/` shows a catalog. |
-| GitHub | The public repo `pr0gramm-dev/pr0gramm-tv`. `.github/workflows/ci.yml` runs `mise run test` on every push and pull request. `.github/workflows/release.yml` makes the tag release. The environment `release` (deployment tags `v*` only) holds the release key as the secret `RELEASE_SIGNING_KEY`; only the job `build` of `release.yml` runs in it. The repo variable `BLOCKLIST_URL` holds the URL of the blocklist. The GitHub Releases hold `pr0gramm-tv.apk` of each version. |
-| Owner's machine | Runs `mise run deploy` and `mise run release-key` (Owner, 2026-11-19). The owner pushes the release tag from here. |
+| GitHub | The public repo `pr0gramm-dev/pr0gramm-tv`. `.github/workflows/ci.yml` runs `mise run test` on every push and pull request. `.github/workflows/release-please.yml` keeps the release PR and, after its merge, creates the tag and a draft release. `.github/workflows/release.yml` makes the tag release. The environment `release` (deployment tags `v*` only) holds the release key as the secret `RELEASE_SIGNING_KEY`; only the job `build` of `release.yml` runs in it. The repo variable `BLOCKLIST_URL` holds the URL of the blocklist. The GitHub Releases hold `pr0gramm-tv.apk` of each version. |
+| Owner's machine | Runs `mise run deploy` and `mise run release-key` (Owner, 2026-11-19). The owner merges the release PR, or pushes a release tag from here. |
 
-The tag release (`.github/workflows/release.yml`) starts on every push of a tag `v*` and runs one release at a time.
-It has two jobs:
+The tag release (`.github/workflows/release.yml`) starts for a tag `v*`: the push of the tag by the owner, or the
+dispatch of `.github/workflows/release-please.yml` after the merge of a release PR. A tag that `GITHUB_TOKEN` creates
+starts no workflow; a `workflow_dispatch` does. The tag release runs one release at a time. It has two jobs:
 
 - `build` (`contents: read`, environment `release`) runs `mise-tasks/stage <tag>`.
   - `stage` stops before Gradle unless `mise-tasks/version check <tag>` accepts the tag. The tag must have the
     form `vMAJOR.MINOR.PATCH` (MINOR and PATCH at most 99). It must be greater than every other SemVer tag. The
     tagged commit must be on `origin/main`. It also stops when `HEAD` is not the tagged commit.
   - It downloads the blocklist from `BLOCKLIST_URL` and builds the APK with `-PappVersion=MAJOR.MINOR.PATCH`:
-    `versionName` = `MAJOR.MINOR.PATCH`, `versionCode` = MAJOR·10 000 + MINOR·100 + PATCH (`AppVersion`). `sign`
+    `versionName` = `MAJOR.MINOR.PATCH`, `versionCode` = (MAJOR·10 000 + MINOR·100 + PATCH)·1000 (`AppVersion`). `sign`
     signs it as `app/build/outputs/apk/release/pr0gramm-tv.apk`.
   - It writes no manifest and no `apks/` folder, and it checks no registry. The job uploads the APK as the artifact `apk`.
-- `release` (`contents: write`, no checkout) creates the GitHub Release of the tag in `$GITHUB_REPOSITORY` with
-  exactly one asset, `pr0gramm-tv.apk` (`gh release create --verify-tag`).
+- `release` (`contents: write`, no checkout) publishes the GitHub Release of the tag in `$GITHUB_REPOSITORY` with
+  exactly one asset, `pr0gramm-tv.apk`. It uploads the APK to the draft release of release-please and then publishes
+  it. Without a release of the tag, it creates the release (`gh release create --verify-tag`).
 
 `.github/workflows/ci.yml` runs `mise run test` on every push and every pull request, with `contents: read` only.
 
